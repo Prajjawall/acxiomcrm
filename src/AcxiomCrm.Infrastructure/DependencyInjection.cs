@@ -72,6 +72,7 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IAuditWriter, Audit.AuditWriter>();
+        services.AddScoped<AcxiomCrm.Application.Audit.IAuditQueryService, Audit.AuditQueryService>();
 
         return services;
     }
