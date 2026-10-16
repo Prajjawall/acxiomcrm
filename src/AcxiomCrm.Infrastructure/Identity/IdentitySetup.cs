@@ -22,6 +22,8 @@ public static class IdentitySetup
         var lockoutMinutes = lockoutSection.GetValue<int?>("DefaultLockoutMinutes") ?? 15;
 
         services.AddDataProtection();
+        services.AddAuthentication();
+        services.AddHttpContextAccessor();
 
         services.AddIdentityCore<ApplicationUser>(options =>
         {

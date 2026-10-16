@@ -106,17 +106,17 @@ public interface IAuthService {
 - Consumes: `IAuditWriter`, `ICurrentUser`, `IClock`, `RegistrationOptions`.
 - Audit actions: `Login`, `LoginFailed` (Details `bad-password|unknown-user|inactive`), `Lockout`, `Logout`, `Register`, `PasswordChanged`. Module `Authentication`, EntityName `User`, RecordId = user id (null when unknown). The attempted username is stored in `Details` as `user=<trimmed, max 100 chars>` for failed attempts.
 
-- [ ] **Step 1: Write failing tests** (against the fixture DB with `FakeClock`).
+- [x] **Step 1: Write failing tests** (against the fixture DB with `FakeClock`).
   - `LoginTests`: `Succeeds_with_username`, `Succeeds_with_email_in_any_case_and_whitespace`, `Unknown_user_returns_InvalidCredentials`, `Wrong_password_returns_InvalidCredentials`, `Inactive_user_correct_password_returns_InvalidCredentials`, `MustChangePassword_user_returns_MustChangePassword_status`, `Success_sets_LastLoginDate_from_clock`.
   - `LockoutTests`: `Fifth_failure_locks_and_audits_Lockout`, `Correct_password_while_locked_returns_LockedOut_with_end_time`, `Counter_not_reset_by_attempt_during_lockout`, `Works_after_lockout_expires` (advance `FakeClock` by 15 min — Identity uses `TimeProvider`; inject it), `Success_resets_failed_count`.
   - `RegistrationTests`: `Open_mode_creates_active_SalesExecutive`, `Role_cannot_be_chosen` (command has no role; also assert resulting role), `ApprovalRequired_creates_inactive_user`, `Disabled_returns_NotFound_result`, `Duplicate_email_returns_validation_error_on_Email`, `Duplicate_username_returns_validation_error_on_UserName`, `Weak_password_returns_validation_error_on_Password_with_identity_messages`, `Fields_validated`: FullName required (`Full name is required.`), email via `EmailRules`.
   - `ChangePasswordTests`: `Wrong_current_password_fails_on_CurrentPassword`, `Policy_violation_fails_on_NewPassword`, `Success_clears_MustChangePassword_and_audits_PasswordChanged`, `New_equal_to_current_rejected`.
   - `AuthAuditTests.No_audit_row_contains_the_password_or_hash`: after exercising every path, scan all `AuditLogs` text columns for the test passwords and for `PasswordHash` values.
   - `LoginTimingTests.Unknown_user_still_performs_hash_verification`: assert via a spy `IPasswordHasher<ApplicationUser>` (decorator) that `VerifyHashedPassword` was called once for an unknown user (dummy hash).
-- [ ] **Step 2: Run** `dotnet test tests/AcxiomCrm.Infrastructure.Tests --filter "LoginTests|LockoutTests|RegistrationTests|ChangePasswordTests|AuthAuditTests|LoginTimingTests"`. Expected: FAIL.
-- [ ] **Step 3: Implement** `AuthService`. Lookup: trim input, if it contains `@` try `FindByEmailAsync` else `FindByNameAsync`, falling back to the other. Use `SignInManager.CheckPasswordSignInAsync(user, pwd, lockoutOnFailure: true)`; map `IsLockedOut` → `LockedOut`, `Succeeded` → `Succeeded` or `MustChangePassword` when the flag is set. Unknown user: verify against a static dummy hash. Registration validates with `EmailRules`/`Limits`, creates with `UserManager.CreateAsync`, adds role. `Disabled` returns `Result.Fail(ErrorKind.NotFound)`. Never put raw `IdentityError.Description` for email/username duplicates into messages that reveal other accounts beyond the Open-mode trade-off documented in Review Focus.
-- [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(auth): authentication service with lockout, registration and password change`.
+- [x] **Step 2: Run** `dotnet test tests/AcxiomCrm.Infrastructure.Tests --filter "LoginTests|LockoutTests|RegistrationTests|ChangePasswordTests|AuthAuditTests|LoginTimingTests"`. Expected: FAIL.
+- [x] **Step 3: Implement** `AuthService`. Lookup: trim input, if it contains `@` try `FindByEmailAsync` else `FindByNameAsync`, falling back to the other. Use `SignInManager.CheckPasswordSignInAsync(user, pwd, lockoutOnFailure: true)`; map `IsLockedOut` → `LockedOut`, `Succeeded` → `Succeeded` or `MustChangePassword` when the flag is set. Unknown user: verify against a static dummy hash. Registration validates with `EmailRules`/`Limits`, creates with `UserManager.CreateAsync`, adds role. `Disabled` returns `Result.Fail(ErrorKind.NotFound)`. Never put raw `IdentityError.Description` for email/username duplicates into messages that reveal other accounts beyond the Open-mode trade-off documented in Review Focus.
+- [x] **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(auth): authentication service with lockout, registration and password change`.
 
 ---
 
