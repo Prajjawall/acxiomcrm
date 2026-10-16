@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AcxiomCrm.Infrastructure.Audit;
 
-public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser currentUser) : SaveChangesInterceptor
+public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser? currentUser = null) : SaveChangesInterceptor
 {
     private sealed record PendingAudit(EntityEntry Entry, AuditLog Log);
 
@@ -86,9 +86,9 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser curre
         }
 
         var now = clock.UtcNow;
-        var userId = string.IsNullOrWhiteSpace(currentUser.UserId) ? "system" : currentUser.UserId;
-        var userName = string.IsNullOrWhiteSpace(currentUser.UserName)
-            ? (string.IsNullOrWhiteSpace(currentUser.UserId) ? "system" : null)
+        var userId = string.IsNullOrWhiteSpace(currentUser?.UserId) ? "system" : currentUser.UserId;
+        var userName = string.IsNullOrWhiteSpace(currentUser?.UserName)
+            ? (string.IsNullOrWhiteSpace(currentUser?.UserId) ? "system" : null)
             : currentUser.UserName;
 
         var entries = context.ChangeTracker.Entries().ToList();
@@ -140,8 +140,8 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser curre
                     EntityName = entityName,
                     Result = AuditResult.Success,
                     NewValue = AuditSnapshot.Serialize(newValues),
-                    IpAddress = currentUser.IpAddress,
-                    CorrelationId = currentUser.CorrelationId
+                    IpAddress = currentUser?.IpAddress,
+                    CorrelationId = currentUser?.CorrelationId
                 };
 
                 var pkProp = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
@@ -185,8 +185,8 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser curre
                         RecordId = recordId,
                         Result = AuditResult.Success,
                         OldValue = AuditSnapshot.Serialize(oldValues),
-                        IpAddress = currentUser.IpAddress,
-                        CorrelationId = currentUser.CorrelationId
+                        IpAddress = currentUser?.IpAddress,
+                        CorrelationId = currentUser?.CorrelationId
                     };
                     context.Set<AuditLog>().Add(auditLog);
                 }
@@ -229,8 +229,8 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser curre
                             Result = AuditResult.Success,
                             OldValue = AuditSnapshot.Serialize(changedOld),
                             NewValue = AuditSnapshot.Serialize(changedNew),
-                            IpAddress = currentUser.IpAddress,
-                            CorrelationId = currentUser.CorrelationId
+                            IpAddress = currentUser?.IpAddress,
+                            CorrelationId = currentUser?.CorrelationId
                         };
                         context.Set<AuditLog>().Add(auditLog);
                     }
@@ -253,8 +253,8 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser curre
                     RecordId = recordId,
                     Result = AuditResult.Success,
                     OldValue = AuditSnapshot.Serialize(oldValues),
-                    IpAddress = currentUser.IpAddress,
-                    CorrelationId = currentUser.CorrelationId
+                    IpAddress = currentUser?.IpAddress,
+                    CorrelationId = currentUser?.CorrelationId
                 };
                 context.Set<AuditLog>().Add(auditLog);
             }

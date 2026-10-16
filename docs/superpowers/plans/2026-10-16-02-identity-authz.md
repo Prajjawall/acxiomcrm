@@ -46,15 +46,15 @@
 - Produces: `IdentitySetup.AddCrmIdentity(this IServiceCollection, IConfiguration)`; `public sealed class PasswordPolicyValidator : IPasswordValidator<ApplicationUser>` (rules: not containing UserName or the email local part (case-insensitive), not in `PasswordDenyList.Contains(string)` of ≥ 50 common passwords embedded as a resource); `public sealed class RoleSeeder { Task SeedAsync(CancellationToken ct); }` idempotent, creates the 3 roles; `public sealed class BootstrapAdminSeeder { Task SeedAsync(CancellationToken ct); }` creates the first Admin only if no Admin exists, from `Bootstrap:AdminEmail`/`Bootstrap:AdminPassword`/`Bootstrap:AdminFullName`; throws `InvalidOperationException` (message names the missing/invalid key but not the password) when the password fails policy; no-op when keys are absent and an Admin exists; throws when absent and no Admin exists **in Production**, but logs a warning in Development.
 - Hosted `DatabaseInitializer : IHostedService` runs migrate (if enabled) → `RoleSeeder` → `BootstrapAdminSeeder`.
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
   - `PasswordPolicyTests` (Theory, `UserManager.CreateAsync` against the fixture DB): `"Sh0rt!a"` fails (length), `"alllowercase123!"` fails (no upper), `"ALLUPPERCASE123!"` fails, `"NoDigitsHere!!!!"` fails, `"NoSymbolsHere1234"` fails, `"Password123!"` fails (deny-list), `"Asha.Rao-2026!x"` for user `asha.rao` fails (contains username), `"Tr1cky-Harbour-77"` passes. Production-config variant: 11 chars fails, 12 passes.
   - `PasswordHashingTests.Stored_hash_is_not_plaintext_and_is_identity_v3`: create user, read `PasswordHash`, assert `!= plaintext`, first byte after base64-decoding is `0x01`, and `PasswordHasher.VerifyHashedPassword` returns `Success`. `Iteration_count_is_600000` reads bytes 5–8 of the payload.
   - `RoleSeederTests.Seeds_three_roles_once`: run twice → exactly 3 roles named `Admin, Manager, SalesExecutive`.
   - `BootstrapAdminTests.Creates_admin_when_none_exists`, `Does_not_create_second_admin`, `Weak_password_throws_without_echoing_password`, `Missing_config_in_Production_throws`.
-- [ ] **Step 2: Run** `dotnet test tests/AcxiomCrm.Infrastructure.Tests --filter "PasswordPolicyTests|PasswordHashingTests|RoleSeederTests|BootstrapAdminTests"`. Expected: FAIL.
-- [ ] **Step 3: Implement** `AddCrmIdentity`: `AddIdentityCore<ApplicationUser>().AddRoles<ApplicationRole>().AddEntityFrameworkStores<CrmDbContext>().AddSignInManager().AddDefaultTokenProviders().AddPasswordValidator<PasswordPolicyValidator>()`; `User.RequireUniqueEmail = true`; `SignIn.RequireConfirmedAccount = false`; options bound from `PasswordPolicyOptions`/`LockoutOptions`; `Configure<PasswordHasherOptions>(o => o.IterationCount = 600_000)`; `SecurityStampValidatorOptions.ValidationInterval = 5 min`.
-- [ ] **Step 4: Run** the tests. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(identity): identity config, policy validator, role and admin seeding`.
+- [x] **Step 2: Run** `dotnet test tests/AcxiomCrm.Infrastructure.Tests --filter "PasswordPolicyTests|PasswordHashingTests|RoleSeederTests|BootstrapAdminTests"`. Expected: FAIL.
+- [x] **Step 3: Implement** `AddCrmIdentity`: `AddIdentityCore<ApplicationUser>().AddRoles<ApplicationRole>().AddEntityFrameworkStores<CrmDbContext>().AddSignInManager().AddDefaultTokenProviders().AddPasswordValidator<PasswordPolicyValidator>()`; `User.RequireUniqueEmail = true`; `SignIn.RequireConfirmedAccount = false`; options bound from `PasswordPolicyOptions`/`LockoutOptions`; `Configure<PasswordHasherOptions>(o => o.IterationCount = 600_000)`; `SecurityStampValidatorOptions.ValidationInterval = 5 min`.
+- [x] **Step 4: Run** the tests. Expected: PASS.
+- [x] **Step 5: Commit** `feat(identity): identity config, policy validator, role and admin seeding`.
 
 ---
 

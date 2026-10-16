@@ -1,5 +1,6 @@
 using AcxiomCrm.Application.Abstractions;
 using AcxiomCrm.Infrastructure.Email;
+using AcxiomCrm.Infrastructure.Identity;
 using AcxiomCrm.Infrastructure.Options;
 using AcxiomCrm.Infrastructure.Persistence;
 using AcxiomCrm.Infrastructure.Time;
@@ -56,7 +57,9 @@ public static class DependencyInjection
         services.AddSingleton<IClock, SystemClock>();
         services.AddTransient<IEmailSender, LoggingEmailSender>();
 
-        services.AddScoped<Audit.AuditSaveChangesInterceptor>();
+        services.AddScoped(sp => new Audit.AuditSaveChangesInterceptor(
+            sp.GetRequiredService<IClock>(),
+            sp.GetService<ICurrentUser>()));
 
         var connectionString = configuration.GetConnectionString("Default");
         if (!string.IsNullOrEmpty(connectionString))
@@ -73,6 +76,8 @@ public static class DependencyInjection
 
         services.AddScoped<IAuditWriter, Audit.AuditWriter>();
         services.AddScoped<AcxiomCrm.Application.Audit.IAuditQueryService, Audit.AuditQueryService>();
+
+        services.AddCrmIdentity(configuration);
 
         return services;
     }
