@@ -45,7 +45,7 @@ Update as work completes.
 | Run | Plan | Status | Merged by | Date |
 |---|---|---|---|---|
 | 1 | 01 Foundation | ☑ | plan/01-foundation | 2026-10-17 |
-| 2 | 08 Audit, Part A | ☐ | | |
+| 2 | 08 Audit, Part A | ☑ | plan/08-audit-log | 2026-10-17 |
 | 3 | 02 Identity & authorisation | ☐ | | |
 | 4 | 03 App shell & design system | ☐ | | |
 | 5 | 08 Audit, Part B | ☐ | | |
