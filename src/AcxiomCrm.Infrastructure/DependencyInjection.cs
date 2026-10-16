@@ -56,11 +56,16 @@ public static class DependencyInjection
         services.AddSingleton<IClock, SystemClock>();
         services.AddTransient<IEmailSender, LoggingEmailSender>();
 
+        services.AddScoped<Audit.AuditSaveChangesInterceptor>();
+
         var connectionString = configuration.GetConnectionString("Default");
         if (!string.IsNullOrEmpty(connectionString))
         {
-            services.AddDbContext<CrmDbContext>(options =>
-                options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
+            services.AddDbContext<CrmDbContext>((sp, options) =>
+            {
+                options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure());
+                options.AddInterceptors(sp.GetRequiredService<Audit.AuditSaveChangesInterceptor>());
+            });
             services.AddDbContextFactory<CrmDbContext>(options =>
                 options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
             services.AddScoped<ICrmDbContext>(sp => sp.GetRequiredService<CrmDbContext>());

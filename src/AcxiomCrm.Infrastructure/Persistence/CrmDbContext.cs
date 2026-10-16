@@ -7,9 +7,11 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AcxiomCrm.Infrastructure.Persistence;
 
-public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
-    : IdentityDbContext<ApplicationUser, ApplicationRole, string>(options), ICrmDbContext
+public class CrmDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>, ICrmDbContext
 {
+    public CrmDbContext(DbContextOptions options) : base(options)
+    {
+    }
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default) =>
