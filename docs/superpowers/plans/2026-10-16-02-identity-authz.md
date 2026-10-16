@@ -178,8 +178,8 @@ public interface IAuthService {
 
 ## Task 6: Plan exit
 
-- [ ] **Step 1: Walk the flows manually** with the dev DB: register, login, lockout (5 bad passwords), unlock via DB `LockoutEnd = NULL` (UI unlock comes in plan 09), logout. Observe audit rows in `AuditLogs`.
-- [ ] **Step 2: Run** Exit checks, tick roadmap, commit `docs: close plan 02`.
+- [x] **Step 1: Walk the flows manually** with the dev DB: register, login, lockout (5 bad passwords), unlock via DB `LockoutEnd = NULL` (UI unlock comes in plan 09), logout. Observe audit rows in `AuditLogs`.
+- [x] **Step 2: Run** Exit checks, tick roadmap, commit `docs: close plan 02`.
 
 ## Exit checks
 1. `dotnet test` green. New classes present: all in the AUTH/AUTHZ rows of `docs/qa/TEST-STRATEGY.md` §4 except `UnlockTests`, `ManagerCannotAdministerTests`, `AuthzApi*` (plans 09/10).
