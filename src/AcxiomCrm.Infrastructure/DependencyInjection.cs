@@ -61,8 +61,12 @@ public static class DependencyInjection
         {
             services.AddDbContext<CrmDbContext>(options =>
                 options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
+            services.AddDbContextFactory<CrmDbContext>(options =>
+                options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
             services.AddScoped<ICrmDbContext>(sp => sp.GetRequiredService<CrmDbContext>());
         }
+
+        services.AddScoped<IAuditWriter, Audit.AuditWriter>();
 
         return services;
     }

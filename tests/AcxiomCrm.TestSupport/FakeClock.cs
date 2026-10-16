@@ -7,6 +7,10 @@ public sealed class FakeClock : IClock
     private DateTimeOffset _utcNow;
     private readonly TimeZoneInfo _timeZoneInfo;
 
+    public FakeClock() : this(new DateTime(2026, 10, 16, 12, 0, 0, DateTimeKind.Utc))
+    {
+    }
+
     public FakeClock(DateTime utcNow, string timeZoneId = "Asia/Kolkata")
     {
         _utcNow = new DateTimeOffset(DateTime.SpecifyKind(utcNow, DateTimeKind.Utc));

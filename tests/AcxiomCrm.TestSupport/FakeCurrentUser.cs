@@ -4,25 +4,31 @@ namespace AcxiomCrm.TestSupport;
 
 public sealed class FakeCurrentUser : ICurrentUser
 {
-    public FakeCurrentUser(string userId, string role, string? userName = null, string? ip = "127.0.0.1")
+    public FakeCurrentUser()
+    {
+        IsAuthenticated = false;
+        CorrelationId = Guid.NewGuid().ToString("N");
+    }
+
+    public FakeCurrentUser(string userId, string role, string? userName = null, string? ip = "127.0.0.1", string? correlationId = null)
     {
         UserId = userId;
         Role = role;
         UserName = userName ?? userId;
         IpAddress = ip;
         IsAuthenticated = !string.IsNullOrEmpty(userId);
-        CorrelationId = Guid.NewGuid().ToString("N");
+        CorrelationId = correlationId ?? Guid.NewGuid().ToString("N");
     }
 
-    public string? UserId { get; }
+    public string? UserId { get; set; }
 
-    public string? UserName { get; }
+    public string? UserName { get; set; }
 
-    public string? Role { get; }
+    public string? Role { get; set; }
 
-    public bool IsAuthenticated { get; }
+    public bool IsAuthenticated { get; set; }
 
-    public string? IpAddress { get; }
+    public string? IpAddress { get; set; }
 
-    public string? CorrelationId { get; }
+    public string? CorrelationId { get; set; }
 }
