@@ -1,0 +1,15 @@
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="auth-card text-center">
+    <div class="auth-header">
+        <h2>Access Denied</h2>
+        <p>You do not have permission to access the requested resource.</p>
+    </div>
+
+    <div class="mt-4">
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Return to Dashboard</a>
+    </div>
+</div>

@@ -164,15 +164,15 @@ public interface IAuthService {
 - Produces: routes `/Account/Login` (GET/POST, `returnUrl`), `/Account/Register`, `/Account/Logout` (POST), `/Account/ChangePassword`, `/Account/AccessDenied`. ViewModels use DataAnnotations: `[Required(ErrorMessage = "Email or username is required.")]`, `[StringLength]` using `Limits`, `[DataType(DataType.Password)]`, `[Compare]` for confirm password, messages from `Messages`.
 - Behaviour: successful login → `ISessionSigner.SignInAsync`, redirect to local `returnUrl` else `/Dashboard`; `LockedOut` → form error `Your account is temporarily locked. Try again in <n> minutes.`; `InvalidCredentials` → `Invalid credentials.` (model-level); `MustChangePassword` → sign in then redirect to ChangePassword. Logout → `RecordLogoutAsync`, sign out, redirect to Login. Login/Register POST are `[EnableRateLimiting("auth")]`.
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
   - `AccountLoginFlowTests`: `Valid_login_redirects_to_dashboard_and_sets_cookie`, `Invalid_login_shows_generic_error_without_cookie`, `Locked_account_shows_lockout_message`, `Returns_to_local_returnUrl`, `Authenticated_user_visiting_login_is_redirected_to_dashboard`, `Anonymous_dashboard_redirects_to_login_with_returnUrl`.
   - `AccountRegisterFlowTests`: `Open_mode_registers_then_logs_in_to_dashboard`, `ApprovalRequired_shows_pending_page_and_cannot_login`, `Disabled_returns_404`, `Posted_role_field_is_ignored`, `Invalid_fields_redisplay_with_field_errors` (assert `data-val-*` attributes rendered on the inputs for client-side validation: required, email, length, regex-free).
   - `LogoutTests.Post_logs_out_and_audits`, `Get_logout_is_405`.
   - `ChangePasswordFlowTests.Wrong_current_password_shows_error`, `Success_shows_flash_and_invalidates_other_sessions` (security stamp updated, old cookie rejected after validation interval is forced to 0 in the test).
-- [ ] **Step 2: Run** the filter for these classes. Expected: FAIL.
-- [ ] **Step 3: Implement** the controller/views. Views use semantic HTML and the `ax-*` class names from DESIGN-SYSTEM §4 (`ax-field`, `ax-btn`, `ax-flash`) without styling; every input has a `<label for>`, `autocomplete` attributes (`username`, `current-password`, `new-password`), and `aria-describedby` for validation spans. No inline scripts; include validation scripts via the layout's `scripts` section.
-- [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(auth): account login, register, logout, change-password flows`.
+- [x] **Step 2: Run** the filter for these classes. Expected: FAIL.
+- [x] **Step 3: Implement** the controller/views. Views use semantic HTML and the `ax-*` class names from DESIGN-SYSTEM §4 (`ax-field`, `ax-btn`, `ax-flash`) without styling; every input has a `<label for>`, `autocomplete` attributes (`username`, `current-password`, `new-password`), and `aria-describedby` for validation spans. No inline scripts; include validation scripts via the layout's `scripts` section.
+- [x] **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(auth): account login, register, logout, change-password flows`.
 
 ---
 
