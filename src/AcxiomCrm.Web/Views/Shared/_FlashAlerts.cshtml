@@ -1,0 +1,24 @@
+@inject IFlash Flash
+@{
+    var messages = Flash.Drain();
+}
+
+@if (messages.Count > 0)
+{
+    <div class="ax-flash-container">
+        @foreach (var msg in messages)
+        {
+            var cssClass = msg.Type switch
+            {
+                FlashType.Success => "ax-flash-success",
+                FlashType.Error => "ax-flash-error",
+                FlashType.Warning => "ax-flash-warning",
+                _ => "ax-flash-info"
+            };
+            var role = msg.Type == FlashType.Error ? "alert" : "status";
+            <div class="ax-flash @cssClass" role="@role">
+                @msg.Message
+            </div>
+        }
+    </div>
+}

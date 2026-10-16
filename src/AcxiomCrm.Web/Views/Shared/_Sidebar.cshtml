@@ -1,0 +1,35 @@
+@using AcxiomCrm.Web.Navigation
+@{
+    var navGroups = NavigationProvider.GetFor(User);
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<aside class="app-sidebar" aria-label="Primary Navigation">
+    <a asp-controller="Dashboard" asp-action="Index" class="app-sidebar-brand">
+        Acxiom<span>CRM</span>
+    </a>
+
+    <nav class="app-sidebar-nav">
+        @foreach (var group in navGroups)
+        {
+            <div class="app-nav-group">
+                <div class="app-nav-group-title">@group.Title</div>
+                @foreach (var item in group.Items)
+                {
+                    var isActive = string.Equals(item.Controller, currentController, StringComparison.OrdinalIgnoreCase);
+                    var activeClass = isActive ? "active" : "";
+                    var ariaCurrent = isActive ? "aria-current=\"page\"" : "";
+
+                    <a href="@Url.Action(item.Action, item.Controller)" class="app-nav-item @activeClass" @Html.Raw(ariaCurrent)>
+                        <span>@item.Label</span>
+                        @if (item.Badge.HasValue)
+                        {
+                            <span class="app-nav-badge">@item.Badge.Value</span>
+                        }
+                    </a>
+                }
+            </div>
+        }
+    </nav>
+</aside>

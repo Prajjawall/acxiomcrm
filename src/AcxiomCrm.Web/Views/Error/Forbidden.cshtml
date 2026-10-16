@@ -1,0 +1,25 @@
+@model AcxiomCrm.Web.ViewModels.ErrorViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Forbidden";
+}
+
+<div class="auth-card text-center">
+    <div class="auth-header">
+        <span class="badge bg-warning text-dark mb-2">403</span>
+        <h2>Access Forbidden</h2>
+        <p>You do not have sufficient permissions to view this page or perform this action.</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.CorrelationId))
+    {
+        <div class="mb-4">
+            <span class="text-muted small">Correlation ID:</span>
+            <code class="ax-code user-select-all">@Model.CorrelationId</code>
+        </div>
+    }
+
+    <div>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+</div>

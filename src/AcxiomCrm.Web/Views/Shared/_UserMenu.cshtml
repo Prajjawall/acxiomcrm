@@ -1,0 +1,20 @@
+@using System.Security.Claims
+@inject AcxiomCrm.Application.Abstractions.ICurrentUser CurrentUser
+
+<div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="fw-semibold">@(CurrentUser.UserName ?? "User")</span>
+        <span class="badge bg-secondary">@(Labels.For(CurrentUser.Role))</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+        <li><h6 class="dropdown-header">@(CurrentUser.UserName)</h6></li>
+        <li><span class="dropdown-item-text text-muted small">Role: @(Labels.For(CurrentUser.Role))</span></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">Change Password</a></li>
+        <li>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                <button type="submit" class="dropdown-item text-danger">Sign Out</button>
+            </form>
+        </li>
+    </ul>
+</div>

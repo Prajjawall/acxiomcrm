@@ -1,0 +1,9 @@
+@model AcxiomCrm.Web.Presentation.StatusBadgeModel
+
+@if (Model != null)
+{
+    <span class="ax-badge @Model.CssClass">
+        <span class="ax-badge-dot"></span>
+        <span>@Model.Label</span>
+    </span>
+}

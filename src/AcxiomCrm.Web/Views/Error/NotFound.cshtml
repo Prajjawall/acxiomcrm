@@ -1,0 +1,25 @@
+@model AcxiomCrm.Web.ViewModels.ErrorViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Not Found";
+}
+
+<div class="auth-card text-center">
+    <div class="auth-header">
+        <span class="badge bg-secondary mb-2">404</span>
+        <h2>Page or Record Not Found</h2>
+        <p>The page, customer, or record you requested could not be found or you do not have permission to view it.</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.CorrelationId))
+    {
+        <div class="mb-4">
+            <span class="text-muted small">Correlation ID:</span>
+            <code class="ax-code user-select-all">@Model.CorrelationId</code>
+        </div>
+    }
+
+    <div>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+</div>

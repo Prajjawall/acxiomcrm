@@ -1,0 +1,25 @@
+@model AcxiomCrm.Web.ViewModels.ErrorViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Error";
+}
+
+<div class="auth-card text-center">
+    <div class="auth-header">
+        <span class="badge bg-danger mb-2">Status @Model.StatusCode</span>
+        <h2>An Error Occurred</h2>
+        <p>@(Model.Message ?? "An unexpected error occurred.")</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.CorrelationId))
+    {
+        <div class="mb-4">
+            <span class="text-muted small">Correlation ID:</span>
+            <code class="ax-code user-select-all">@Model.CorrelationId</code>
+        </div>
+    }
+
+    <div>
+        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+</div>

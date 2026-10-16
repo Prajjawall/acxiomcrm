@@ -1,0 +1,52 @@
+@model AcxiomCrm.Web.Presentation.PagerModel
+@using System.Text.Encodings.Web
+
+@if (Model != null && Model.TotalPages > 1)
+{
+    var queryDict = Model.Query != null 
+        ? new Dictionary<string, string?>(Model.Query, StringComparer.OrdinalIgnoreCase) 
+        : new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+
+    Func<int, string> getPageUrl = (page) =>
+    {
+        queryDict["page"] = page.ToString();
+        var qs = string.Join("&", queryDict.Where(q => !string.IsNullOrEmpty(q.Value)).Select(q => $"{UrlEncoder.Default.Encode(q.Key)}={UrlEncoder.Default.Encode(q.Value!)}"));
+        return $"{Url.Action(Model.RouteAction)}?{qs}";
+    };
+
+    <nav aria-label="Pagination" class="d-flex justify-content-between align-items-center mt-3">
+        <div class="text-muted small">
+            Showing <span class="fw-semibold">@Model.FirstItem</span> to <span class="fw-semibold">@Model.LastItem</span> of <span class="fw-semibold">@Model.Total</span> records
+        </div>
+
+        <ul class="pagination pagination-sm m-0">
+            <li class="page-item @(!Model.HasPrevious ? "disabled" : "")">
+                <a class="page-link" href="@(Model.HasPrevious ? getPageUrl(Model.Page - 1) : "#")" aria-label="Previous">
+                    &laquo;
+                </a>
+            </li>
+
+            @{
+                int? lastP = null;
+                foreach (var p in Model.PageWindow)
+                {
+                    if (lastP.HasValue && p - lastP.Value > 1)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                    var isActive = p == Model.Page;
+                    <li class="page-item @(isActive ? "active" : "")">
+                        <a class="page-link" href="@getPageUrl(p)">@p</a>
+                    </li>
+                    lastP = p;
+                }
+            }
+
+            <li class="page-item @(!Model.HasNext ? "disabled" : "")">
+                <a class="page-link" href="@(Model.HasNext ? getPageUrl(Model.Page + 1) : "#")" aria-label="Next">
+                    &raquo;
+                </a>
+            </li>
+        </ul>
+    </nav>
+}
