@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Respawn" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Testcontainers.MsSql" />
+    <PackageReference Include="xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AcxiomCrm.Infrastructure\AcxiomCrm.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\AcxiomCrm.Application\AcxiomCrm.Application.csproj" />
+    <ProjectReference Include="..\..\src\AcxiomCrm.Domain\AcxiomCrm.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

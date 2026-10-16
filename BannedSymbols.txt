@@ -1,0 +1,11 @@
+P:System.DateTime.Now;Use IClock instead of DateTime.Now.
+P:System.DateTime.UtcNow;Use IClock instead of DateTime.UtcNow.
+P:System.DateTime.Today;Use IClock instead of DateTime.Today.
+P:System.DateTimeOffset.Now;Use IClock instead of DateTimeOffset.Now.
+P:System.DateTimeOffset.UtcNow;Use IClock instead of DateTimeOffset.UtcNow.
+M:Microsoft.EntityFrameworkCore.RelationalQueryableExtensions.FromSqlRaw``1(System.Linq.IQueryable{``0},System.String,System.Object[]);Use parameterised FromSql instead of FromSqlRaw.
+M:Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRaw(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Object[]);Use parameterised ExecuteSql instead of ExecuteSqlRaw.
+M:Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Threading.CancellationToken);Use parameterised ExecuteSqlAsync instead of ExecuteSqlRawAsync.
+M:Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.ExecuteSqlRawAsync(Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade,System.String,System.Collections.Generic.IEnumerable{System.Object},System.Threading.CancellationToken);Use parameterised ExecuteSqlAsync instead of ExecuteSqlRawAsync.
+M:Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Raw(System.Object);Html.Raw is banned to prevent XSS.
+M:Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper`1.Raw(System.Object);Html.Raw is banned to prevent XSS.
