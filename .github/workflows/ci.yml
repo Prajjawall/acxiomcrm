@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  format:
+    name: Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Verify Formatting
+        run: dotnet format --verify-no-changes
+
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: .NET Package Vulnerability Audit
+        run: |
+          output=$(dotnet list package --vulnerable --include-transitive)
+          echo "$output"
+          if echo "$output" | grep -qE "(>|has the following vulnerable packages)"; then
+            echo "Vulnerable packages detected!"
+            exit 1
+          fi
+      - name: Node Audit (if package.json exists)
+        run: |
+          if [ -f src/AcxiomCrm.Web/package.json ]; then
+            npm --prefix src/AcxiomCrm.Web audit --omit=dev
+          fi
+
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build with warnings as errors
+        run: dotnet build -warnaserror --no-restore
+      - name: Run Tests
+        run: dotnet test --no-build --collect:"XPlat Code Coverage"
+      - name: Upload Coverage Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-coverage
+          path: '**/TestResults/**/coverage.cobertura.xml'
