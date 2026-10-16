@@ -13,6 +13,7 @@ public class CrmDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     {
     }
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<Customer> Customers => Set<Customer>();
     IQueryable<AcxiomCrm.Application.Users.UserSummary> ICrmDbContext.Users => Set<AcxiomCrm.Application.Users.UserSummary>();
 
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default) =>
