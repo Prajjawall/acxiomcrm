@@ -1,4 +1,5 @@
 using AcxiomCrm.Application.Abstractions;
+using AcxiomCrm.Domain.Entities;
 using AcxiomCrm.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,8 @@ namespace AcxiomCrm.Infrastructure.Persistence;
 public sealed class CrmDbContext(DbContextOptions<CrmDbContext> options)
     : IdentityDbContext<ApplicationUser, ApplicationRole, string>(options), ICrmDbContext
 {
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default) =>
         Database.BeginTransactionAsync(ct);
 

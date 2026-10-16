@@ -5,6 +5,9 @@ Instructions for any coding agent (Antigravity, Codex, Claude Code). Read this f
 ## What this is
 AcxiomCRM: a role-based CRM on .NET 10 / ASP.NET Core MVC / EF Core / Identity / SQL Server. Everything is specified in `docs/`. **Code must follow the docs. If the docs are wrong or silent, stop and record the question in `docs/OPEN-QUESTIONS.md`, don't invent behaviour.**
 
+## Scope level (READ FIRST)
+This build is **college / dev level**, not production. `docs/SCOPE-LITE.md` overrides the plans wherever they conflict: it lists what to keep (all mandatory modules, entities and fields) and what to cut. Do not build or test anything on its "Cut" list.
+
 ## Reading order
 1. `docs/prd/PRD.md` (requirements and the decisions table D-xx; never contradict it)
 2. `docs/architecture/ARCHITECTURE.md` (names, layers, contracts)
