@@ -76,6 +76,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAuditWriter, Audit.AuditWriter>();
         services.AddScoped<AcxiomCrm.Application.Audit.IAuditQueryService, Audit.AuditQueryService>();
+        services.AddScoped<IOwnerScope, Scope.OwnerScopeResolver>();
 
         services.AddCrmIdentity(configuration);
 

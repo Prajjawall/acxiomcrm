@@ -16,6 +16,10 @@ LoggingSetup.ConfigureSerilog(builder);
 // Infrastructure and typed options
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// HTTP Context & Current User
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<AcxiomCrm.Application.Abstractions.ICurrentUser, AcxiomCrm.Web.Services.HttpCurrentUser>();
+
 // Health Checks
 builder.Services.AddAppHealthChecks();
 

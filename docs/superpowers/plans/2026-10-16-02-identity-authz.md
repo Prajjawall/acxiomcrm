@@ -71,13 +71,13 @@
 - Consumes: `ICurrentUser`, `IOwnerScope`, `OwnerScope` (plan 01).
 - Produces: `public sealed class HttpCurrentUser : ICurrentUser` (claims `NameIdentifier`, `Name`, `Role`; IP from `HttpContext.Connection.RemoteIpAddress` honouring `UseForwardedHeaders`; `CorrelationId` from `HttpContext.Items`); `OwnerScopeResolver(ICurrentUser, CrmDbContext)` caching its result in a scoped field; `TestUsers.CreateStandardAsync(CrmDbContext)` seeding Admin `admin`, Managers `mgr.north`/`mgr.south`, executives `exec.n1`, `exec.n2` (north), `exec.s1` (south), returning a record with their ids.
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
   - `OwnerScopeResolverTests`: `Admin_is_All`; `Manager_scope_is_self_plus_direct_reports` (north manager → `{mgr.north, exec.n1, exec.n2}`, never `exec.s1`); `Manager_scope_includes_inactive_reports`; `Executive_scope_is_self_only`; `Anonymous_scope_is_empty_not_All`; `Result_is_cached_within_scope`.
   - `HttpCurrentUserTests.Reads_claims_and_ip`, `Anonymous_has_null_ids_and_IsAuthenticated_false`.
-- [ ] **Step 2: Run** the filter for these classes. Expected: FAIL.
-- [ ] **Step 3: Implement** the types. Anonymous/unknown role → `new OwnerScope(false, [])` (fail closed).
-- [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(auth): current user and owner scope resolver`.
+- [x] **Step 2: Run** the filter for these classes. Expected: FAIL.
+- [x] **Step 3: Implement** the types. Anonymous/unknown role → `new OwnerScope(false, [])` (fail closed).
+- [x] **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(auth): current user and owner scope resolver`.
 
 ---
 
