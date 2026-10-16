@@ -7,7 +7,7 @@ public sealed class JwtOptions : IValidatableObject
 {
     public const string Section = "Security:Jwt";
 
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; }
 
     public string Issuer { get; set; } = "AcxiomCrm";
 

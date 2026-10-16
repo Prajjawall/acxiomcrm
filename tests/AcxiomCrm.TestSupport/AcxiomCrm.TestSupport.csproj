@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Respawn" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="Testcontainers.MsSql" />
@@ -18,6 +19,7 @@
     <ProjectReference Include="..\..\src\AcxiomCrm.Infrastructure\AcxiomCrm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\AcxiomCrm.Application\AcxiomCrm.Application.csproj" />
     <ProjectReference Include="..\..\src\AcxiomCrm.Domain\AcxiomCrm.Domain.csproj" />
+    <ProjectReference Include="..\..\src\AcxiomCrm.Web\AcxiomCrm.Web.csproj" />
   </ItemGroup>
 
 </Project>
