@@ -20,11 +20,18 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AcxiomCrm.Application.Abstractions.ICurrentUser, AcxiomCrm.Web.Services.HttpCurrentUser>();
 
+// Authentication & Authorization
+builder.Services.AddAppAuthentication(builder.Environment);
+builder.Services.AddAppAuthorization();
+
 // Health Checks
 builder.Services.AddAppHealthChecks();
 
-// Controllers and views
-builder.Services.AddControllersWithViews();
+// Controllers and views with auto-antiforgery
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+});
 
 var app = builder.Build();
 
@@ -45,7 +52,15 @@ app.UseStatusCodePagesWithReExecute("/Error/{0}");
 app.UseSerilogRequestLogging();
 app.UseMiddleware<CorrelationIdMiddleware>();
 
+// Security headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    await next();
+});
+
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Health check endpoints

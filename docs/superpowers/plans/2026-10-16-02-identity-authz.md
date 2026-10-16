@@ -135,7 +135,7 @@ public interface IAuthService {
 - Produces: `PermissionRequirement(string Permission)`; `PermissionHandler` succeeds when `RolePermissionMap.Has(role, permission)` for the user's role claim **and**, for `audit.view.team`, `AuditOptions.ManagerAccess` is true; `PermissionPolicyProvider : IAuthorizationPolicyProvider` creating a policy per known permission string (unknown policy name → fallback to deny-all, never allow); `ISessionSigner { Task SignInAsync(string userId, CancellationToken ct = default); Task SignOutAsync(); }` wrapping `SignInManager.SignInAsync`/`SignOutAsync`; `MustChangePasswordMiddleware` redirects authenticated users with the flag to `/Account/ChangePassword` except for that action, logout and static files (API requests get 403 with problem `password-change-required`).
 - Probe endpoints in tests: `GET /_probe/{permission}` for every `Permissions.All`, `RequireAuthorization(permission)`.
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
   - `PermissionMatrixTests.Role_gets_expected_status_for_every_permission` (Theory over role × permission): 200 when `RolePermissionMap.Has`, else 403; anonymous: 302 to `/Account/Login?ReturnUrl=…`; anonymous on `/api/_probe/...` style path: 401. `Audit_team_permission_requires_config_flag` with flag on/off.
   - `CookieSettingsTests`: login response `Set-Cookie` contains `httponly`, `samesite=lax`, and (non-Development) `secure`; name equals `.AcxiomCrm.Auth`; `Production_uses_host_prefix`.
   - `AntiForgeryTests`: `POST /Account/Login` without token → 400; with token from GET → proceeds; `POST /Account/Logout` without token → 400.
@@ -143,10 +143,10 @@ public interface IAuthService {
   - `RateLimitTests`: 11th login POST within a minute from one IP → 429 with `Retry-After`; other IP unaffected (header `X-Forwarded-For` via test `ForwardedHeaders` config).
   - `MustChangePasswordGateTests`: flagged user requesting `/Dashboard` → 302 `/Account/ChangePassword`; can post the change form; after change reaches dashboard.
   - `ReturnUrlTests` (Theory) per Review Focus.
-- [ ] **Step 2: Run** `dotnet test tests/AcxiomCrm.Web.Tests --filter "PermissionMatrixTests|CookieSettingsTests|AntiForgeryTests|SecurityHeadersTests|RateLimitTests|MustChangePasswordGateTests|ReturnUrlTests"`. Expected: FAIL (Account controller arrives in Task 5, so write the controller stub used by tests in this task: `GET/POST /Account/Login`, `POST /Account/Logout`, `GET/POST /Account/ChangePassword` returning minimal views; they are completed in Task 5).
-- [ ] **Step 3: Implement** the setup classes: cookie scheme options from SECURITY-AUTHZ §4; `AddControllersWithViews(o => o.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()))`; nonce generated per request into `HttpContext.Items["csp-nonce"]` and exposed by a `CspNonceTagHelper` for `<script>` tags; `AddRateLimiter` fixed window policy `auth`, applied with `[EnableRateLimiting("auth")]`; `UseForwardedHeaders` configured from `ForwardedHeaders:KnownProxies`.
-- [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(security): cookie auth, permission policies, headers, anti-forgery, rate limiting`.
+- [x] **Step 2: Run** `dotnet test tests/AcxiomCrm.Web.Tests --filter "PermissionMatrixTests|CookieSettingsTests|AntiForgeryTests|SecurityHeadersTests|RateLimitTests|MustChangePasswordGateTests|ReturnUrlTests"`. Expected: FAIL (Account controller arrives in Task 5, so write the controller stub used by tests in this task: `GET/POST /Account/Login`, `POST /Account/Logout`, `GET/POST /Account/ChangePassword` returning minimal views; they are completed in Task 5).
+- [x] **Step 3: Implement** the setup classes: cookie scheme options from SECURITY-AUTHZ §4; `AddControllersWithViews(o => o.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()))`; nonce generated per request into `HttpContext.Items["csp-nonce"]` and exposed by a `CspNonceTagHelper` for `<script>` tags; `AddRateLimiter` fixed window policy `auth`, applied with `[EnableRateLimiting("auth")]`; `UseForwardedHeaders` configured from `ForwardedHeaders:KnownProxies`.
+- [x] **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(security): cookie auth, permission policies, headers, anti-forgery, rate limiting`.
 
 ---
 
