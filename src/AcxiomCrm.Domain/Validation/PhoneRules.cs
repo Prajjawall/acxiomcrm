@@ -45,4 +45,6 @@ public static class PhoneRules
 
         return false;
     }
+
+    public static bool IsValid(string? raw) => TryNormalize(raw, out _);
 }
