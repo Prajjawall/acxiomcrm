@@ -1,0 +1,42 @@
+using AcxiomCrm.Application.Abstractions;
+
+namespace AcxiomCrm.TestSupport;
+
+public sealed class FakeClock : IClock
+{
+    private DateTimeOffset _utcNow;
+    private readonly TimeZoneInfo _timeZoneInfo;
+
+    public FakeClock(DateTime utcNow, string timeZoneId = "Asia/Kolkata")
+    {
+        _utcNow = new DateTimeOffset(DateTime.SpecifyKind(utcNow, DateTimeKind.Utc));
+        _timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+    }
+
+    public DateTime UtcNow => _utcNow.UtcDateTime;
+
+    public DateOnly Today
+    {
+        get
+        {
+            var local = TimeZoneInfo.ConvertTime(_utcNow, _timeZoneInfo);
+            return DateOnly.FromDateTime(local.DateTime);
+        }
+    }
+
+    public DateTime ToBusinessLocal(DateTime utc)
+    {
+        var utcDateTime = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, _timeZoneInfo);
+    }
+
+    public void Set(DateTime utcNow)
+    {
+        _utcNow = new DateTimeOffset(DateTime.SpecifyKind(utcNow, DateTimeKind.Utc));
+    }
+
+    public void Advance(TimeSpan by)
+    {
+        _utcNow = _utcNow.Add(by);
+    }
+}
