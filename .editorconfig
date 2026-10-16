@@ -43,3 +43,6 @@ dotnet_diagnostic.CA1848.severity = none
 
 # CA1707: Identifiers should not contain underscores (standard for test names)
 dotnet_diagnostic.CA1707.severity = none
+
+# CA1000: Do not declare static members on generic types (Result<T>.Ok / Fail is required by ARCHITECTURE §3)
+dotnet_diagnostic.CA1000.severity = none
