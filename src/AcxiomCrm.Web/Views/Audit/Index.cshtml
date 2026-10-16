@@ -1,0 +1,121 @@
+@model AcxiomCrm.Web.ViewModels.Audit.AuditIndexViewModel
+@using AcxiomCrm.Domain.Enums
+@{
+    ViewData["Title"] = "Audit Log";
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3">
+            <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Module</label>
+                <select name="module" class="form-select form-select-sm">
+                    <option value="">All Modules</option>
+                    @foreach (var m in Model.Modules)
+                    {
+                        <option value="@m" selected="@(string.Equals(m, Model.Filter.Module, StringComparison.OrdinalIgnoreCase))">@m</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small text-muted">Result</label>
+                <select name="result" class="form-select form-select-sm">
+                    <option value="">All Results</option>
+                    <option value="Success" selected="@(Model.Filter.Result == AuditResult.Success)">Success</option>
+                    <option value="Failure" selected="@(Model.Filter.Result == AuditResult.Failure)">Failure</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small text-muted">From Date</label>
+                <input type="date" name="from" value="@(Model.Filter.From?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                <span asp-validation-for="Filter.From" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small text-muted">To Date</label>
+                <input type="date" name="to" value="@(Model.Filter.To?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Search Text</label>
+                <input type="text" name="text" value="@Model.Filter.Text" placeholder="Username, details..." class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Module</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Record ID</th>
+                    <th>Result</th>
+                    <th>IP Address</th>
+                    <th class="text-end">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">
+                            No audit log records found matching the criteria.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var log in Model.Items.Items)
+                    {
+                        var resultBadgeClass = log.Result == AuditResult.Success ? "ax-badge-success" : "ax-badge-danger";
+                        <tr>
+                            <td><ax-datetime value="@log.CreatedDateUtc" /></td>
+                            <td>@(log.UserName ?? "system")</td>
+                            <td><span class="badge bg-light text-dark border">@log.Module</span></td>
+                            <td><span class="fw-medium">@log.Action</span></td>
+                            <td>@log.EntityName</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.RecordId))
+                                {
+                                    <code class="ax-code">@log.RecordId</code>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="ax-badge @resultBadgeClass">
+                                    <span class="ax-badge-dot"></span>
+                                    <span>@log.Result</span>
+                                </span>
+                            </td>
+                            <td><span class="text-muted small">@(log.IpAddress ?? "—")</span></td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@log.Id" class="btn btn-sm btn-outline-secondary">View</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-footer bg-white border-top">
+        <partial name="_Pager" model="Model.Pager" />
+    </div>
+</div>

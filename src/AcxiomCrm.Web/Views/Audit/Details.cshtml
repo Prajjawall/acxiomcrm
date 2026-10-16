@@ -1,0 +1,111 @@
+@model AcxiomCrm.Web.ViewModels.Audit.AuditDetailViewModel
+@using AcxiomCrm.Domain.Enums
+@{
+    ViewData["Title"] = $"Audit Record #{Model.Detail.Header.Id}";
+    var h = Model.Detail.Header;
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">&larr; Back to Audit Log</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="m-0 fw-semibold">Audit Entry Summary</h5>
+        @{
+            var badgeClass = h.Result == AuditResult.Success ? "ax-badge-success" : "ax-badge-danger";
+        }
+        <span class="ax-badge @badgeClass">
+            <span class="ax-badge-dot"></span>
+            <span>@h.Result</span>
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <span class="ax-label d-block">Timestamp</span>
+                <span><ax-datetime value="@h.CreatedDateUtc" /></span>
+            </div>
+            <div class="col-md-3">
+                <span class="ax-label d-block">User</span>
+                <span class="fw-medium">@(h.UserName ?? "system")</span>
+            </div>
+            <div class="col-md-3">
+                <span class="ax-label d-block">Module / Action</span>
+                <span>@h.Module &middot; @h.Action</span>
+            </div>
+            <div class="col-md-3">
+                <span class="ax-label d-block">Entity / Record ID</span>
+                <span>@h.EntityName @(string.IsNullOrEmpty(h.RecordId) ? "" : $"({h.RecordId})")</span>
+            </div>
+            <div class="col-md-3">
+                <span class="ax-label d-block">IP Address</span>
+                <span>@(h.IpAddress ?? "—")</span>
+            </div>
+            <div class="col-md-3">
+                <span class="ax-label d-block">Correlation ID</span>
+                <code class="ax-code">@(Model.Detail.CorrelationId ?? "—")</code>
+            </div>
+            <div class="col-md-6">
+                <span class="ax-label d-block">Details</span>
+                <span class="text-break">@(h.Details ?? "—")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="m-0 fw-semibold">Property Changes</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Property</th>
+                    <th style="width: 37.5%;">Old Value</th>
+                    <th style="width: 37.5%;">New Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Detail.Changes.Count == 0)
+                {
+                    <tr>
+                        <td colspan="3" class="text-muted text-center py-3">
+                            No property-level changes recorded for this entry.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var change in Model.Detail.Changes)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@change.Property</td>
+                            <td>
+                                @if (string.IsNullOrEmpty(change.Old))
+                                {
+                                    <span class="text-muted italic">&lt;empty&gt;</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger"><del>@change.Old</del></span>
+                                }
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(change.New))
+                                {
+                                    <span class="text-muted italic">&lt;empty&gt;</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success"><ins>@change.New</ins></span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
