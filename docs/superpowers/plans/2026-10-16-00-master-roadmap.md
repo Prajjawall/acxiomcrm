@@ -47,7 +47,7 @@ Update as work completes.
 | 1 | 01 Foundation | ☑ | plan/01-foundation | 2026-10-17 |
 | 2 | 08 Audit, Part A | ☑ | plan/08-audit-log | 2026-10-17 |
 | 3 | 02 Identity & authorisation | ☑ | plan/02-identity-authz | 2026-10-17 |
-| 4 | 03 App shell & design system | ☐ | | |
+| 4 | 03 App shell & design system | ☑ | plan/03-app-shell-design-system | 2026-10-17 |
 | 5 | 08 Audit, Part B | ☐ | | |
 | 6 | 04 Customers | ☐ | | |
 | 7 | 05 Leads | ☐ | | |

@@ -180,7 +180,7 @@
 
 ## Task 8: Plan exit
 
-- [ ] Run Exit checks, tick the roadmap, commit `docs: close plan 03`.
+- [x] Run Exit checks, tick the roadmap, commit `docs: close plan 03`.
 
 ## Exit checks
 1. `npm --prefix src/AcxiomCrm.Web run build && npm test` green; `dotnet test` (Web.Tests + E2E) green.
