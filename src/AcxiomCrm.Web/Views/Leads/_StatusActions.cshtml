@@ -1,0 +1,44 @@
+@model AcxiomCrm.Web.ViewModels.Leads.LeadDetailsViewModel
+@using AcxiomCrm.Domain.Enums
+@using AcxiomCrm.Web.Presentation
+
+<div class="d-flex flex-wrap align-items-center gap-2">
+    @if (Model.Lead.AllowedTransitions.Count > 0)
+    {
+        @foreach (var transition in Model.Lead.AllowedTransitions)
+        {
+            var btnClass = transition switch
+            {
+                LeadStatus.Qualified => "btn-outline-success",
+                LeadStatus.Contacted => "btn-outline-primary",
+                LeadStatus.Unqualified => "btn-outline-warning",
+                LeadStatus.Lost => "btn-outline-danger",
+                _ => "btn-outline-secondary"
+            };
+
+            var label = transition switch
+            {
+                LeadStatus.Contacted => "Mark contacted",
+                LeadStatus.Qualified => "Mark qualified",
+                LeadStatus.Unqualified => "Mark unqualified",
+                LeadStatus.Lost => "Mark lost",
+                _ => $"Move to {Labels.For(transition)}"
+            };
+
+            <form asp-action="ChangeStatus" asp-route-id="@Model.Lead.Id" method="post" class="d-inline">
+                <input type="hidden" name="To" value="@transition" />
+                <input type="hidden" name="RowVersion" value="@(Model.Lead.RowVersion.Length > 0 ? Convert.ToBase64String(Model.Lead.RowVersion) : "")" />
+                <button type="submit" class="btn btn-sm @btnClass" id="status-action-@transition.ToString().ToLowerInvariant()">
+                    @label
+                </button>
+            </form>
+        }
+    }
+
+    @if (Model.CanConvert)
+    {
+        <a asp-action="Convert" asp-route-id="@Model.Lead.Id" class="btn btn-sm btn-primary" id="convertLeadButton">
+            Convert lead
+        </a>
+    }
+</div>

@@ -225,6 +225,20 @@ public sealed class CustomersController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Lookup(string? term = null, CancellationToken ct = default)
+    {
+        var items = await _customerService.LookupAsync(term, 20, ct);
+        var json = items.Select(i => new
+        {
+            id = i.Id,
+            label = string.IsNullOrWhiteSpace(i.CompanyName)
+                ? $"{i.Name} ({i.Code})"
+                : $"{i.Name} – {i.CompanyName} ({i.Code})"
+        });
+        return Json(json);
+    }
+
     private async Task PopulateOwnerOptionsAsync(CustomerFormViewModel model, CancellationToken ct)
     {
         if (_currentUser.Role is Roles.Admin or Roles.Manager)

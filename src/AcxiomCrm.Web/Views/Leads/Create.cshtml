@@ -1,0 +1,27 @@
+@model AcxiomCrm.Web.ViewModels.Leads.LeadFormViewModel
+
+@{
+    ViewData["Title"] = "Create lead";
+    ViewData["Page"] = "leads";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-sm btn-link text-decoration-none px-0 mb-2">
+        &larr; Back to leads
+    </a>
+    <h1 class="h3 mb-1">Create Lead</h1>
+    <p class="text-muted small mb-0">Record a new prospect or lead inquiry into the pipeline.</p>
+</div>
+
+<form asp-action="Create" method="post" id="leadCreateForm">
+    <partial name="_Form" model="Model" />
+
+    <div class="d-flex align-items-center gap-2 mb-5">
+        <button type="submit" class="btn btn-primary" id="saveLeadBtn">Save lead</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
