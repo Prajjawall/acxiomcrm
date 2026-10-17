@@ -71,6 +71,11 @@ public class LeadService : ILeadService
             query = query.Where(l => l.OwnerId == f.OwnerId);
         }
 
+        if (f.ConvertedCustomerId.HasValue)
+        {
+            query = query.Where(l => l.ConvertedCustomerId == f.ConvertedCustomerId.Value);
+        }
+
         var term = SearchHelper.Normalise(f.Search);
         if (term is not null)
         {

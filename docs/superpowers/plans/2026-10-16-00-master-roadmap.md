@@ -50,7 +50,7 @@ Update as work completes.
 | 4 | 03 App shell & design system | ☑ | plan/03-app-shell-design-system | 2026-10-17 |
 | 5 | 08 Audit, Part B | ☑ | plan/08b-audit-ui | 2026-10-17 |
 | 6 | 04 Customers | ☑ | plan/04-customers | 2026-10-17 |
-| 7 | 05 Leads | ☐ | | |
+| 7 | 05 Leads | ☑ | plan/05-leads | 2026-10-18 |
 | 8 | 06 Opportunities | ☐ | | |
 | 9 | 07 Follow-ups & activities | ☐ | | |
 | 10 | 09 Users & roles | ☐ | | |

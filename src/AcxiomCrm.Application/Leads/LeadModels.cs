@@ -7,7 +7,8 @@ public sealed record LeadFilter(
     LeadStatus? Status = null,
     LeadPriority? Priority = null,
     LeadSource? Source = null,
-    string? OwnerId = null);
+    string? OwnerId = null,
+    int? ConvertedCustomerId = null);
 
 public sealed record LeadListItem(
     int Id,

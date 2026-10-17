@@ -3,6 +3,7 @@ using AcxiomCrm.Application.Abstractions;
 using AcxiomCrm.Application.Audit;
 using AcxiomCrm.Application.Common;
 using AcxiomCrm.Application.Customers;
+using AcxiomCrm.Application.Leads;
 using AcxiomCrm.Application.Users;
 using AcxiomCrm.Domain.Enums;
 using AcxiomCrm.Domain.Security;
@@ -22,19 +23,22 @@ public sealed class CustomersController : Controller
     private readonly IAuditQueryService _auditQueryService;
     private readonly ICurrentUser _currentUser;
     private readonly IFlash _flash;
+    private readonly ILeadService? _leadService;
 
     public CustomersController(
         ICustomerService customerService,
         IUserDirectory userDirectory,
         IAuditQueryService auditQueryService,
         ICurrentUser currentUser,
-        IFlash flash)
+        IFlash flash,
+        ILeadService? leadService = null)
     {
         _customerService = customerService;
         _userDirectory = userDirectory;
         _auditQueryService = auditQueryService;
         _currentUser = currentUser;
         _flash = flash;
+        _leadService = leadService;
     }
 
     [HttpGet]
@@ -89,10 +93,21 @@ public sealed class CustomersController : Controller
             new PageQuery(1, 50, "Timestamp", true),
             ct);
 
+        IReadOnlyList<LeadListItem> sourceLeads = [];
+        if (_leadService is not null)
+        {
+            var leadsResult = await _leadService.SearchAsync(
+                new LeadFilter(ConvertedCustomerId: id),
+                new PageQuery(1, 50, "CreatedDate", true),
+                ct);
+            sourceLeads = leadsResult.Items;
+        }
+
         var model = new CustomerDetailsViewModel
         {
             Customer = result.Value!,
             AuditHistory = auditResult.Items,
+            SourceLeads = sourceLeads,
             CanEdit = _currentUser.Can(Permissions.CustomersEdit),
             CanDelete = _currentUser.Can(Permissions.CustomersDelete)
         };
