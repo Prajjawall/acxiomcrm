@@ -48,6 +48,7 @@ public sealed class ServiceHarness : IDisposable
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<IOwnerScope, OwnerScopeResolver>();
         services.AddScoped<IUserDirectory, UserDirectory>();
+        services.AddScoped<AcxiomCrm.Application.Customers.ICustomerService, AcxiomCrm.Infrastructure.Customers.CustomerService>();
 
         var provider = services.BuildServiceProvider();
         return new ServiceHarness(provider);

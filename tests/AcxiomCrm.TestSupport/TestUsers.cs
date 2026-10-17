@@ -84,7 +84,27 @@ public static class TestUsers
             IsActive = true
         };
 
+        var adminRole = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(db.Roles, r => r.Name == AcxiomCrm.Domain.Security.Roles.Admin);
+        if (adminRole == null)
+        {
+            adminRole = new ApplicationRole { Id = "role-admin", Name = AcxiomCrm.Domain.Security.Roles.Admin, NormalizedName = AcxiomCrm.Domain.Security.Roles.Admin.ToUpperInvariant() };
+            var mgrRole = new ApplicationRole { Id = "role-manager", Name = AcxiomCrm.Domain.Security.Roles.Manager, NormalizedName = AcxiomCrm.Domain.Security.Roles.Manager.ToUpperInvariant() };
+            var execRole = new ApplicationRole { Id = "role-exec", Name = AcxiomCrm.Domain.Security.Roles.SalesExecutive, NormalizedName = AcxiomCrm.Domain.Security.Roles.SalesExecutive.ToUpperInvariant() };
+            db.Roles.AddRange(adminRole, mgrRole, execRole);
+            await db.SaveChangesAsync();
+        }
+
+        var managerRole = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstAsync(db.Roles, r => r.Name == AcxiomCrm.Domain.Security.Roles.Manager);
+        var salesExecRole = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstAsync(db.Roles, r => r.Name == AcxiomCrm.Domain.Security.Roles.SalesExecutive);
+
         db.Users.AddRange(admin, mgrNorth, mgrSouth, execN1, execN2, execS1);
+        db.UserRoles.AddRange(
+            new Microsoft.AspNetCore.Identity.IdentityUserRole<string> { UserId = admin.Id, RoleId = adminRole.Id },
+            new Microsoft.AspNetCore.Identity.IdentityUserRole<string> { UserId = mgrNorth.Id, RoleId = managerRole.Id },
+            new Microsoft.AspNetCore.Identity.IdentityUserRole<string> { UserId = mgrSouth.Id, RoleId = managerRole.Id },
+            new Microsoft.AspNetCore.Identity.IdentityUserRole<string> { UserId = execN1.Id, RoleId = salesExecRole.Id },
+            new Microsoft.AspNetCore.Identity.IdentityUserRole<string> { UserId = execN2.Id, RoleId = salesExecRole.Id },
+            new Microsoft.AspNetCore.Identity.IdentityUserRole<string> { UserId = execS1.Id, RoleId = salesExecRole.Id });
         await db.SaveChangesAsync();
 
         return new StandardTestUsers(
