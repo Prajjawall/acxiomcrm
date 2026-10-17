@@ -2,7 +2,6 @@ using AcxiomCrm.Application.Abstractions;
 using AcxiomCrm.Application.Common;
 using AcxiomCrm.Application.Customers;
 using AcxiomCrm.Application.Users;
-using AcxiomCrm.Domain.Entities;
 using AcxiomCrm.Domain.Enums;
 using AcxiomCrm.Domain.Rules;
 using AcxiomCrm.Domain.Security;
@@ -190,23 +189,13 @@ public class CustomerService : ICustomerService
             return Result<CustomerDetail>.Fail(ErrorKind.Validation, validationErrors);
         }
 
-        var emailNormalized = EmailRules.Normalize(c.Email);
-        var hasNormalizedPhone = PhoneRules.TryNormalize(c.Phone, out var normalizedPhone);
-
-        var emailExists = await _db.Customers.IgnoreQueryFilters()
-            .AnyAsync(x => !x.IsDeleted && x.EmailNormalized == emailNormalized, ct);
-        var phoneExists = hasNormalizedPhone && await _db.Customers.IgnoreQueryFilters()
-            .AnyAsync(x => !x.IsDeleted && x.Phone == normalizedPhone, ct);
-
-        if (emailExists || phoneExists)
+        var dupErrors = await CustomerCreator.CheckDuplicatesAsync(_db, c.Email, c.Phone, ct: ct);
+        if (dupErrors.Count > 0)
         {
-            var dupErrors = new List<FieldError>();
-            if (emailExists) dupErrors.Add(new FieldError("Email", Messages.DuplicateEmail));
-            if (phoneExists) dupErrors.Add(new FieldError("Phone", Messages.DuplicatePhone));
             return Result<CustomerDetail>.Fail(ErrorKind.Conflict, dupErrors);
         }
 
-        var customer = Customer.Create(
+        var customer = CustomerCreator.CreateEntity(
             c.Name,
             c.CompanyName,
             c.Email,
@@ -226,20 +215,20 @@ public class CustomerService : ICustomerService
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
         {
-            var dupErrors = new List<FieldError>();
+            var sqlErrors = new List<FieldError>();
             if (sqlEx.Message.Contains("UX_Customers_EmailNormalized", StringComparison.OrdinalIgnoreCase))
             {
-                dupErrors.Add(new FieldError("Email", Messages.DuplicateEmail));
+                sqlErrors.Add(new FieldError("Email", Messages.DuplicateEmail));
             }
             if (sqlEx.Message.Contains("UX_Customers_Phone", StringComparison.OrdinalIgnoreCase))
             {
-                dupErrors.Add(new FieldError("Phone", Messages.DuplicatePhone));
+                sqlErrors.Add(new FieldError("Phone", Messages.DuplicatePhone));
             }
-            if (dupErrors.Count == 0)
+            if (sqlErrors.Count == 0)
             {
-                dupErrors.Add(new FieldError("Email", Messages.DuplicateEmail));
+                sqlErrors.Add(new FieldError("Email", Messages.DuplicateEmail));
             }
-            return Result<CustomerDetail>.Fail(ErrorKind.Conflict, dupErrors);
+            return Result<CustomerDetail>.Fail(ErrorKind.Conflict, sqlErrors);
         }
 
         var ownerOption = await _userDirectory.GetOptionAsync(customer.OwnerId, ct);
@@ -445,28 +434,15 @@ public class CustomerService : ICustomerService
 
     public async Task<CustomerDuplicate?> FindDuplicateAsync(string email, string phone, int? excludeId = null, CancellationToken ct = default)
     {
-        var emailNormalized = EmailRules.Normalize(email);
-        var hasNormalizedPhone = PhoneRules.TryNormalize(phone, out var normalizedPhone);
-
-        var emailExists = await _db.Customers.IgnoreQueryFilters()
-            .AnyAsync(x => !x.IsDeleted && (excludeId == null || x.Id != excludeId.Value) && x.EmailNormalized == emailNormalized, ct);
-
-        if (emailExists)
+        var dupErrors = await CustomerCreator.CheckDuplicatesAsync(_db, email, phone, excludeId, ct);
+        if (dupErrors.Any(e => e.Field == "Email"))
         {
             return new CustomerDuplicate("Email");
         }
-
-        if (hasNormalizedPhone)
+        if (dupErrors.Any(e => e.Field == "Phone"))
         {
-            var phoneExists = await _db.Customers.IgnoreQueryFilters()
-                .AnyAsync(x => !x.IsDeleted && (excludeId == null || x.Id != excludeId.Value) && x.Phone == normalizedPhone, ct);
-
-            if (phoneExists)
-            {
-                return new CustomerDuplicate("Phone");
-            }
+            return new CustomerDuplicate("Phone");
         }
-
         return null;
     }
 }

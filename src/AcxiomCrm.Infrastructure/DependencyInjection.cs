@@ -82,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<AcxiomCrm.Application.Auth.IAuthService, Auth.AuthService>();
         services.AddScoped<AcxiomCrm.Application.Users.IUserDirectory, Users.UserDirectory>();
         services.AddScoped<AcxiomCrm.Application.Customers.ICustomerService, Customers.CustomerService>();
+        services.AddScoped<AcxiomCrm.Application.Leads.IOpportunityFactory, Opportunities.NotAvailableOpportunityFactory>();
         services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, Leads.LeadService>();
 
         services.AddCrmIdentity(configuration);

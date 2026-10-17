@@ -20,7 +20,7 @@ public sealed class ServiceHarness : IDisposable
         Services = provider;
     }
 
-    public static ServiceHarness Create(TestDatabase db, string userId, string role, FakeClock? clock = null)
+    public static ServiceHarness Create(TestDatabase db, string userId, string role, FakeClock? clock = null, Action<IServiceCollection>? configureServices = null)
     {
         var services = new ServiceCollection();
         var fakeClock = clock ?? new FakeClock(new DateTime(2026, 10, 16, 12, 0, 0, DateTimeKind.Utc));
@@ -44,6 +44,10 @@ public sealed class ServiceHarness : IDisposable
         {
             options.UseSqlServer(db.ConnectionString);
             options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
+            foreach (var customInterceptor in sp.GetServices<Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor>())
+            {
+                options.AddInterceptors(customInterceptor);
+            }
         });
         services.AddScoped<ICrmDbContext>(sp => sp.GetRequiredService<CrmDbContext>());
 
@@ -51,7 +55,10 @@ public sealed class ServiceHarness : IDisposable
         services.AddScoped<IOwnerScope, OwnerScopeResolver>();
         services.AddScoped<IUserDirectory, UserDirectory>();
         services.AddScoped<AcxiomCrm.Application.Customers.ICustomerService, AcxiomCrm.Infrastructure.Customers.CustomerService>();
+        services.AddScoped<AcxiomCrm.Application.Leads.IOpportunityFactory, AcxiomCrm.Infrastructure.Opportunities.NotAvailableOpportunityFactory>();
         services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, AcxiomCrm.Infrastructure.Leads.LeadService>();
+
+        configureServices?.Invoke(services);
 
         var provider = services.BuildServiceProvider();
         return new ServiceHarness(provider);

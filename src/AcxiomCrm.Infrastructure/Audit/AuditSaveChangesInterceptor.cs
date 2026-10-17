@@ -171,6 +171,12 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser? curr
                 var pkProp = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
                 var recordId = pkProp?.CurrentValue?.ToString();
 
+                if (recordId != null && context.ChangeTracker.Entries<AuditLog>()
+                    .Any(al => al.State == EntityState.Added && al.Entity.EntityName == entityName && al.Entity.RecordId == recordId))
+                {
+                    continue;
+                }
+
                 if (isSoftDelete)
                 {
                     var oldValues = GetNonSensitiveProperties(entry, useOriginal: true);

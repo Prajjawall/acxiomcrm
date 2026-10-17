@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using AcxiomCrm.Application.Abstractions;
 using AcxiomCrm.Application.Common;
 using AcxiomCrm.Application.Leads;
@@ -7,7 +9,9 @@ using AcxiomCrm.Domain.Enums;
 using AcxiomCrm.Domain.Rules;
 using AcxiomCrm.Domain.Security;
 using AcxiomCrm.Domain.Validation;
+using AcxiomCrm.Infrastructure.Customers;
 using AcxiomCrm.Infrastructure.Persistence;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace AcxiomCrm.Infrastructure.Leads;
@@ -18,17 +22,23 @@ public class LeadService : ILeadService
     private readonly ICurrentUser _currentUser;
     private readonly IOwnerScope _ownerScope;
     private readonly IAuditActionHint _actionHint;
+    private readonly IClock _clock;
+    private readonly IOpportunityFactory _opportunityFactory;
 
     public LeadService(
         CrmDbContext db,
         ICurrentUser currentUser,
         IOwnerScope ownerScope,
-        IAuditActionHint actionHint)
+        IAuditActionHint actionHint,
+        IClock clock,
+        IOpportunityFactory opportunityFactory)
     {
         _db = db;
         _currentUser = currentUser;
         _ownerScope = ownerScope;
         _actionHint = actionHint;
+        _clock = clock;
+        _opportunityFactory = opportunityFactory;
     }
 
     public async Task<PagedResult<LeadListItem>> SearchAsync(LeadFilter f, PageQuery p, CancellationToken ct = default)
@@ -243,14 +253,14 @@ public class LeadService : ILeadService
             return Result<LeadDetail>.Fail(ErrorKind.NotFound, new FieldError("Id", "Lead not found."));
         }
 
-        if (c.RowVersion is not null && !lead.RowVersion.SequenceEqual(c.RowVersion))
-        {
-            return Result<LeadDetail>.Fail(ErrorKind.Conflict, new FieldError("RowVersion", "This lead was modified by another user. Refresh and try again."));
-        }
-
         if (lead.Status is LeadStatus.Converted or LeadStatus.Lost)
         {
             return Result<LeadDetail>.Fail(ErrorKind.Conflict, new FieldError("Status", $"This lead is {lead.Status} and cannot be edited."));
+        }
+
+        if (c.RowVersion is not null && !lead.RowVersion.SequenceEqual(c.RowVersion))
+        {
+            return Result<LeadDetail>.Fail(ErrorKind.Conflict, new FieldError("RowVersion", "This lead was modified by another user. Refresh and try again."));
         }
 
         var errors = LeadRules.Validate(c.Name, c.CompanyName, c.Email, c.Phone, c.ExpectedValue, c.Notes);
@@ -405,13 +415,181 @@ public class LeadService : ILeadService
         return await GetAsync(lead.Id, ct);
     }
 
-    public Task<Result<ConvertLeadResult>> ConvertAsync(int id, ConvertLeadCommand c, CancellationToken ct = default)
+    public async Task<Result<ConvertLeadResult>> ConvertAsync(int id, ConvertLeadCommand c, CancellationToken ct = default)
     {
-        return Task.FromResult(Result<ConvertLeadResult>.Fail(ErrorKind.Validation, new FieldError("Id", "Not implemented until Task 3.")));
+        if (!_currentUser.Can(Permissions.LeadsConvert))
+        {
+            return Result<ConvertLeadResult>.Fail(ErrorKind.Forbidden, new FieldError("Id", "You do not have permission to convert leads."));
+        }
+
+        var scope = await _ownerScope.ResolveAsync(ct);
+        var lead = await _db.Leads.InScope(scope).FirstOrDefaultAsync(l => l.Id == id, ct);
+        if (lead == null)
+        {
+            return Result<ConvertLeadResult>.Fail(ErrorKind.NotFound, new FieldError("Id", "Lead not found."));
+        }
+
+        if (c.RowVersion is not null && !lead.RowVersion.SequenceEqual(c.RowVersion))
+        {
+            return Result<ConvertLeadResult>.Fail(ErrorKind.Conflict, new FieldError("RowVersion", "This lead was modified by another user. Refresh and try again."));
+        }
+
+        if (lead.Status != LeadStatus.Qualified)
+        {
+            return Result<ConvertLeadResult>.Fail(ErrorKind.Conflict, new FieldError("Status", "Only qualified leads can be converted."));
+        }
+
+        if (c.CreateOpportunity && c.Opportunity == null)
+        {
+            return Result<ConvertLeadResult>.Fail(ErrorKind.Validation, new FieldError("Opportunity", "Opportunity details are required when creating an opportunity."));
+        }
+
+        Customer? existingCustomer = null;
+        if (c.ExistingCustomerId.HasValue)
+        {
+            existingCustomer = await _db.Customers.InScope(scope).FirstOrDefaultAsync(x => x.Id == c.ExistingCustomerId.Value, ct);
+            if (existingCustomer == null)
+            {
+                return Result<ConvertLeadResult>.Fail(ErrorKind.NotFound, new FieldError("ExistingCustomerId", "Existing customer not found or outside your scope."));
+            }
+            if (existingCustomer.Status != CustomerStatus.Active)
+            {
+                return Result<ConvertLeadResult>.Fail(ErrorKind.Validation, new FieldError("ExistingCustomerId", "Existing customer must be active."));
+            }
+        }
+        else
+        {
+            var contactErrors = new List<FieldError>();
+            if (string.IsNullOrWhiteSpace(lead.Email))
+            {
+                contactErrors.Add(new FieldError("Email", "Add an email address and phone number to the lead before converting."));
+            }
+            if (string.IsNullOrWhiteSpace(lead.Phone))
+            {
+                contactErrors.Add(new FieldError("Phone", "Add an email address and phone number to the lead before converting."));
+            }
+            if (contactErrors.Count > 0)
+            {
+                return Result<ConvertLeadResult>.Fail(ErrorKind.Validation, contactErrors);
+            }
+
+            var dupErrors = await CustomerCreator.CheckDuplicatesAsync(_db, lead.Email!, lead.Phone!, ct: ct);
+            if (dupErrors.Count > 0)
+            {
+                return Result<ConvertLeadResult>.Fail(ErrorKind.Conflict, new FieldError("Email", "A customer with this email already exists. Link to the existing customer instead."));
+            }
+        }
+
+        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            int customerId;
+            if (existingCustomer != null)
+            {
+                customerId = existingCustomer.Id;
+            }
+            else
+            {
+                var newCustomer = CustomerCreator.CreateEntity(
+                    lead.Name,
+                    lead.CompanyName,
+                    lead.Email!,
+                    lead.Phone!,
+                    null,
+                    null,
+                    null,
+                    CustomerStatus.Active,
+                    lead.OwnerId,
+                    null);
+
+                _db.Customers.Add(newCustomer);
+                await _db.SaveChangesAsync(ct);
+                customerId = newCustomer.Id;
+            }
+
+            int? opportunityId = null;
+            if (c.CreateOpportunity)
+            {
+                var oppResult = await _opportunityFactory.CreateForConversionAsync(
+                    customerId, lead.Id, lead.OwnerId, c.Opportunity!, ct);
+                if (!oppResult.Succeeded)
+                {
+                    await transaction.RollbackAsync(ct);
+                    return Result<ConvertLeadResult>.Fail(oppResult.Kind, oppResult.Errors);
+                }
+                opportunityId = oppResult.Value;
+            }
+
+            lead.MarkConverted(customerId, opportunityId, _clock.UtcNow);
+
+            if (c.RowVersion is not null)
+            {
+                _db.Entry(lead).OriginalValues["RowVersion"] = c.RowVersion;
+            }
+
+            var auditLog = new AuditLog
+            {
+                CreatedDate = _clock.UtcNow,
+                UserId = string.IsNullOrWhiteSpace(_currentUser?.UserId) ? "system" : _currentUser.UserId,
+                UserName = _currentUser?.UserName,
+                Module = AuditModules.Leads,
+                Action = AuditActions.Converted,
+                EntityName = nameof(Lead),
+                RecordId = lead.Id.ToString(CultureInfo.InvariantCulture),
+                Result = AuditResult.Success,
+                NewValue = JsonSerializer.Serialize(new { customerId, opportunityId }),
+                IpAddress = _currentUser?.IpAddress,
+                CorrelationId = _currentUser?.CorrelationId
+            };
+            _db.AuditLogs.Add(auditLog);
+
+            await _db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+
+            return Result<ConvertLeadResult>.Ok(new ConvertLeadResult(lead.Id, customerId, opportunityId));
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await transaction.RollbackAsync(ct);
+            return Result<ConvertLeadResult>.Fail(ErrorKind.Conflict, new FieldError("RowVersion", "This lead was modified by another user. Refresh and try again."));
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            await transaction.RollbackAsync(ct);
+            return Result<ConvertLeadResult>.Fail(ErrorKind.Conflict, new FieldError("Email", "A customer with this email already exists. Link to the existing customer instead."));
+        }
+        catch
+        {
+            await transaction.RollbackAsync(ct);
+            throw;
+        }
     }
 
-    public Task<int?> FindConvertibleDuplicateCustomerIdAsync(int leadId, CancellationToken ct = default)
+    public async Task<int?> FindConvertibleDuplicateCustomerIdAsync(int leadId, CancellationToken ct = default)
     {
-        return Task.FromResult<int?>(null);
+        var scope = await _ownerScope.ResolveAsync(ct);
+        var lead = await _db.Leads.AsNoTracking().InScope(scope).FirstOrDefaultAsync(l => l.Id == leadId, ct);
+        if (lead == null)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(lead.Email) && string.IsNullOrWhiteSpace(lead.Phone))
+        {
+            return null;
+        }
+
+        var emailNormalized = !string.IsNullOrWhiteSpace(lead.Email) ? EmailRules.Normalize(lead.Email) : null;
+        string? normPhone = null;
+        var hasPhone = !string.IsNullOrWhiteSpace(lead.Phone) && PhoneRules.TryNormalize(lead.Phone, out normPhone);
+
+        var customer = await _db.Customers.AsNoTracking()
+            .InScope(scope)
+            .Where(c => !c.IsDeleted &&
+                ((emailNormalized != null && c.EmailNormalized == emailNormalized) ||
+                 (hasPhone && c.Phone == normPhone)))
+            .FirstOrDefaultAsync(ct);
+
+        return customer?.Id;
     }
 }
