@@ -279,6 +279,147 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.Lead", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("LeadId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("LeadCode")
+                        .HasDefaultValueSql("'LEAD-' + FORMAT(NEXT VALUE FOR seq_LeadCode, '000000')");
+
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("ConvertedCustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ConvertedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<int?>("ConvertedOpportunityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("EmailNormalized")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<decimal>("ExpectedValue")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("LeadName");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<byte>("Priority")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Source")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Leads_LeadCode");
+
+                    b.HasIndex("ConvertedCustomerId");
+
+                    b.HasIndex("Name")
+                        .HasDatabaseName("IX_Leads_LeadName");
+
+                    b.HasIndex("OwnerId", "Status")
+                        .HasDatabaseName("IX_Leads_OwnerId_Status");
+
+                    b.HasIndex("Status", "CreatedDate")
+                        .HasDatabaseName("IX_Leads_Status_CreatedDate");
+
+                    b.ToTable("Leads", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Leads_Contact", "Email IS NOT NULL OR Phone IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_Leads_Converted", "(Status = 5 AND ConvertedCustomerId IS NOT NULL) OR (Status <> 5 AND ConvertedCustomerId IS NULL)");
+
+                            t.HasCheckConstraint("CK_Leads_ExpectedValue", "ExpectedValue >= 0 AND ExpectedValue <= 100000000");
+
+                            t.HasCheckConstraint("CK_Leads_Priority", "Priority IN (1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_Leads_Source", "Source IN (1, 2, 3, 4, 5, 6, 7)");
+
+                            t.HasCheckConstraint("CK_Leads_Status", "Status IN (1, 2, 3, 4, 5, 6)");
+                        });
+                });
+
             modelBuilder.Entity("AcxiomCrm.Infrastructure.Identity.ApplicationRole", b =>
                 {
                     b.Property<string>("Id")
@@ -514,6 +655,22 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.Lead", b =>
+                {
+                    b.HasOne("AcxiomCrm.Domain.Entities.Customer", "ConvertedCustomer")
+                        .WithMany()
+                        .HasForeignKey("ConvertedCustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AcxiomCrm.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ConvertedCustomer");
                 });
 
             modelBuilder.Entity("AcxiomCrm.Infrastructure.Identity.ApplicationUser", b =>
