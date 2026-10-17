@@ -1,0 +1,194 @@
+@model AcxiomCrm.Web.ViewModels.Customers.CustomerDetailsViewModel
+@using AcxiomCrm.Web.Presentation
+
+@{
+    ViewData["Title"] = Model.Customer.Name;
+    ViewData["Page"] = "customers";
+}
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-link text-decoration-none px-0 mb-2">
+            &larr; Back to customers
+        </a>
+        <div class="d-flex align-items-center gap-3">
+            <h1 class="h3 mb-0">@Model.Customer.Name</h1>
+            <span class="font-monospace text-muted small bg-light px-2 py-1 rounded border">@Model.Customer.Code</span>
+            <partial name="_StatusBadge" model='StatusBadges.For("Customer", Model.Customer.Status)' />
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Customer.CompanyName))
+        {
+            <p class="text-muted small mt-1 mb-0">@Model.Customer.CompanyName</p>
+        }
+    </div>
+
+    <div class="d-flex gap-2">
+        @if (Model.CanEdit)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Customer.Id" class="btn btn-outline-primary btn-sm">
+                Edit
+            </a>
+        }
+        @if (Model.CanDelete)
+        {
+            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                Deactivate
+            </button>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Customer Facts -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-semibold">Customer Facts</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-5 text-muted">Customer Code</dt>
+                    <dd class="col-sm-7 font-monospace fw-semibold">@Model.Customer.Code</dd>
+
+                    <dt class="col-sm-5 text-muted">Status</dt>
+                    <dd class="col-sm-7"><partial name="_StatusBadge" model='StatusBadges.For("Customer", Model.Customer.Status)' /></dd>
+
+                    <dt class="col-sm-5 text-muted">Owner</dt>
+                    <dd class="col-sm-7 fw-medium">@Model.Customer.OwnerName</dd>
+
+                    <dt class="col-sm-5 text-muted">Email</dt>
+                    <dd class="col-sm-7"><a href="mailto:@Model.Customer.Email" class="text-decoration-none">@Model.Customer.Email</a></dd>
+
+                    <dt class="col-sm-5 text-muted">Phone</dt>
+                    <dd class="col-sm-7"><a href="tel:@Model.Customer.Phone" class="text-decoration-none">@Model.Customer.Phone</a></dd>
+
+                    @if (!string.IsNullOrEmpty(Model.Customer.CompanyName))
+                    {
+                        <dt class="col-sm-5 text-muted">Company</dt>
+                        <dd class="col-sm-7">@Model.Customer.CompanyName</dd>
+                    }
+
+                    <dt class="col-sm-5 text-muted">Address</dt>
+                    <dd class="col-sm-7">
+                        @if (!string.IsNullOrEmpty(Model.Customer.Address))
+                        {
+                            <div>@Model.Customer.Address</div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Customer.City) || !string.IsNullOrEmpty(Model.Customer.State))
+                        {
+                            <div>@Model.Customer.City@(!string.IsNullOrEmpty(Model.Customer.City) && !string.IsNullOrEmpty(Model.Customer.State) ? ", " : "")@Model.Customer.State</div>
+                        }
+                        @if (string.IsNullOrEmpty(Model.Customer.Address) && string.IsNullOrEmpty(Model.Customer.City) && string.IsNullOrEmpty(Model.Customer.State))
+                        {
+                            <span class="text-muted">Not specified</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Created</dt>
+                    <dd class="col-sm-7 text-muted">@Model.Customer.CreatedDate.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                    @if (Model.Customer.ModifiedDate.HasValue)
+                    {
+                        <dt class="col-sm-5 text-muted">Modified</dt>
+                        <dd class="col-sm-7 text-muted">@Model.Customer.ModifiedDate.Value.ToString("yyyy-MM-dd HH:mm")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Customer.Notes))
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-semibold">Notes</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-0 text-secondary" style="white-space: pre-wrap;">@Model.Customer.Notes</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Right Column: Tabs (History) -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom-0 pb-0">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-semibold" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button" role="tab">
+                            History
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="history-pane" role="tabpanel">
+                        @if (Model.AuditHistory.Count > 0)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light text-muted small text-uppercase">
+                                        <tr>
+                                            <th scope="col" style="width: 160px;">Date &amp; Time</th>
+                                            <th scope="col" style="width: 120px;">User</th>
+                                            <th scope="col" style="width: 100px;">Action</th>
+                                            <th scope="col" style="width: 90px;">Result</th>
+                                            <th scope="col">IP Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var log in Model.AuditHistory)
+                                        {
+                                            <tr>
+                                                <td class="text-nowrap small text-muted">@log.CreatedDateUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                                <td class="fw-medium small">@log.UserName</td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark border">@log.Action</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(log.Result == AcxiomCrm.Domain.Enums.AuditResult.Success ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                                        @log.Result
+                                                    </span>
+                                                </td>
+                                                <td class="small text-muted font-monospace">@log.IpAddress</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small py-4 text-center mb-0">No audit log entries recorded for this customer.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Confirmation Modal -->
+@if (Model.CanDelete)
+{
+    <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deactivateModalLabel">Confirm Deactivation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Deactivate <strong>@Model.Customer.Name</strong>? They will be hidden from lists but history is kept.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-action="Delete" asp-route-id="@Model.Customer.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-danger">Deactivate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}

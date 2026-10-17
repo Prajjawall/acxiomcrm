@@ -1,0 +1,28 @@
+@model AcxiomCrm.Application.Customers.CustomerListItem
+@using AcxiomCrm.Web.Presentation
+
+<tr>
+    <td class="font-monospace text-nowrap">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="fw-semibold text-decoration-none">@Model.Code</a>
+    </td>
+    <td>
+        <div class="fw-medium">@Model.Name</div>
+        @if (!string.IsNullOrEmpty(Model.CompanyName))
+        {
+            <div class="text-muted small">@Model.CompanyName</div>
+        }
+    </td>
+    <td>
+        <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+    </td>
+    <td class="text-nowrap">@Model.Phone</td>
+    <td>
+        <partial name="_StatusBadge" model='StatusBadges.For("Customer", Model.Status)' />
+    </td>
+    <td class="text-nowrap">@Model.OwnerName</td>
+    <td class="text-nowrap text-muted small">@Model.CreatedDate.ToString("yyyy-MM-dd")</td>
+    <td class="text-end text-nowrap">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary py-0 px-2">View</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary py-0 px-2">Edit</a>
+    </td>
+</tr>

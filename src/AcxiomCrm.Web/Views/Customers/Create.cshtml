@@ -1,0 +1,27 @@
+@model AcxiomCrm.Web.ViewModels.Customers.CustomerFormViewModel
+
+@{
+    ViewData["Title"] = "Create customer";
+    ViewData["Page"] = "customers";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-sm btn-link text-decoration-none px-0 mb-2">
+        &larr; Back to customers
+    </a>
+    <h1 class="h3 mb-1">Create Customer</h1>
+    <p class="text-muted small mb-0">Add a new customer account to the system.</p>
+</div>
+
+<form asp-action="Create" method="post" id="customerCreateForm">
+    <partial name="_Form" model="Model" />
+
+    <div class="d-flex align-items-center gap-2 mb-5">
+        <button type="submit" class="btn btn-primary">Save customer</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
