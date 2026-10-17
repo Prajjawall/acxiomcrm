@@ -420,6 +420,131 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.Opportunity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("OpportunityId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CloseNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly?>("ClosedDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<DateOnly>("ExpectedCloseDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("LeadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("OpportunityName");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte>("Probability")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte?>("Source")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("Stage")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("IX_Opps_CustomerId");
+
+                    b.HasIndex("LeadId");
+
+                    b.HasIndex("OwnerId", "Status")
+                        .HasDatabaseName("IX_Opps_OwnerId_Status");
+
+                    b.HasIndex("Stage", "ExpectedCloseDate")
+                        .HasDatabaseName("IX_Opps_Stage_ExpectedCloseDate");
+
+                    b.HasIndex("Status", "ClosedDate")
+                        .HasDatabaseName("IX_Opps_Status_ClosedDate");
+
+                    b.ToTable("Opportunities", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Opps_Amount", "Amount >= 0 AND Amount <= 1000000000");
+
+                            t.HasCheckConstraint("CK_Opps_ClosedDate", "(Status = 1 AND ClosedDate IS NULL) OR (Status <> 1 AND ClosedDate IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_Opps_OpenAmountPositive", "Status <> 1 OR Amount > 0");
+
+                            t.HasCheckConstraint("CK_Opps_Probability", "Probability >= 0 AND Probability <= 100");
+
+                            t.HasCheckConstraint("CK_Opps_Stage", "Stage IN (1, 2, 3, 4, 5)");
+
+                            t.HasCheckConstraint("CK_Opps_StageStatus", "(Stage IN (1, 2, 3) AND Status = 1) OR (Stage = 4 AND Status = 2) OR (Stage = 5 AND Status = 3)");
+
+                            t.HasCheckConstraint("CK_Opps_Status", "Status IN (1, 2, 3)");
+                        });
+                });
+
             modelBuilder.Entity("AcxiomCrm.Infrastructure.Identity.ApplicationRole", b =>
                 {
                     b.Property<string>("Id")
@@ -671,6 +796,30 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("ConvertedCustomer");
+                });
+
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.Opportunity", b =>
+                {
+                    b.HasOne("AcxiomCrm.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AcxiomCrm.Domain.Entities.Lead", "Lead")
+                        .WithMany()
+                        .HasForeignKey("LeadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AcxiomCrm.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Lead");
                 });
 
             modelBuilder.Entity("AcxiomCrm.Infrastructure.Identity.ApplicationUser", b =>

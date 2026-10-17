@@ -48,14 +48,14 @@
   - `Opportunity : Entity, IOwnedEntity, ISoftDeletable, IAuditedEntity, IHasTimestamps`: `Name, CustomerId, LeadId?, Amount, Stage, Status, Probability, ExpectedCloseDate (DateOnly), ClosedDate?, CloseNote?, Source?, OwnerId, Notes, RowVersion`; `static Create(...)`, `UpdateDetails(...)` (throws if closed), `MoveTo(OpportunityStage stage, DateOnly today, string? note)` (applies D-17, throws on invalid), `Reopen()`.
   - Probability type is `byte` in the entity/DB and `int` in commands (validated before narrowing).
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
   - `OpportunityRulesTests` (verbatim canonical messages): amount table (`0`, `-1`, `0.004`, `0.01`, `1_000_000_000`, `1_000_000_000.01`), probability table, close date table with `today` fixed (`yesterday`, `today`, `tomorrow`), `Closed_stage_skips_amount_and_date_open_rules`, `Weighted` table (`(1250000, 40) → 500000.00`, `(33.33m, 33) → 11.00` (`10.9989`→`11.00`), `(0.01m, 50) → 0.01` half away from zero), `StatusFor` for all stages, `DefaultProbability`.
   - `OpportunityEntityTests`: `MoveTo_Won_sets_probability_100_closeddate_and_status`, `MoveTo_Lost_sets_0`, `Won_requires_note`, `MoveTo_from_closed_throws`, `Reopen_clears_close_fields`, `UpdateDetails_on_closed_throws`.
   - `OpportunityConstraintTests`: `CK_Opps_Amount`, `CK_Opps_Probability`, `CK_Opps_OpenAmountPositive`, `CK_Opps_StageStatus`, `CK_Opps_ClosedDate`, FK restrict customer/lead/owner, index names.
-- [ ] **Step 2: Run** `--filter "Opportunity"` across Domain and Infrastructure tests. Expected: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(opportunities): rules, entity and migration`.
+- [x] **Step 2: Run** `--filter "Opportunity"` across Domain and Infrastructure tests. Expected: FAIL.
+- [x] **Step 3: Implement.**
+- [x] **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(opportunities): rules, entity and migration`.
 
 ---
 
