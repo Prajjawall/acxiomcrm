@@ -32,6 +32,8 @@ builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
 });
+builder.Services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider, AcxiomCrm.Web.Validation.AxAttributeAdapterProvider>();
+
 
 var app = builder.Build();
 
