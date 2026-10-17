@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AcxiomCrm.Infrastructure.Audit;
 
-public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser? currentUser = null) : SaveChangesInterceptor
+public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser? currentUser = null, IAuditActionHint? actionHint = null) : SaveChangesInterceptor
 {
     private sealed record PendingAudit(EntityEntry Entry, AuditLog Log);
 
@@ -223,7 +223,7 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser? curr
                             UserId = userId,
                             UserName = userName,
                             Module = module,
-                            Action = AuditActions.Update,
+                            Action = actionHint?.Take() ?? AuditActions.Update,
                             EntityName = entityName,
                             RecordId = recordId,
                             Result = AuditResult.Success,

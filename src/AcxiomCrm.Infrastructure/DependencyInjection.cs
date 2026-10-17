@@ -57,9 +57,11 @@ public static class DependencyInjection
         services.AddSingleton<IClock, SystemClock>();
         services.AddTransient<IEmailSender, LoggingEmailSender>();
 
+        services.AddScoped<IAuditActionHint, AcxiomCrm.Application.Common.AuditActionHint>();
         services.AddScoped(sp => new Audit.AuditSaveChangesInterceptor(
             sp.GetRequiredService<IClock>(),
-            sp.GetService<ICurrentUser>()));
+            sp.GetService<ICurrentUser>(),
+            sp.GetService<IAuditActionHint>()));
 
         var connectionString = configuration.GetConnectionString("Default");
         if (!string.IsNullOrEmpty(connectionString))
@@ -80,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<AcxiomCrm.Application.Auth.IAuthService, Auth.AuthService>();
         services.AddScoped<AcxiomCrm.Application.Users.IUserDirectory, Users.UserDirectory>();
         services.AddScoped<AcxiomCrm.Application.Customers.ICustomerService, Customers.CustomerService>();
+        services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, Leads.LeadService>();
 
         services.AddCrmIdentity(configuration);
 

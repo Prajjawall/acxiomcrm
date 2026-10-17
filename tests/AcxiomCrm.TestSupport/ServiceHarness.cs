@@ -34,9 +34,11 @@ public sealed class ServiceHarness : IDisposable
         services.AddSingleton<IClock>(fakeClock);
         services.AddSingleton<ICurrentUser>(fakeUser);
 
+        services.AddScoped<IAuditActionHint, AcxiomCrm.Application.Common.AuditActionHint>();
         services.AddScoped(sp => new AuditSaveChangesInterceptor(
             sp.GetRequiredService<IClock>(),
-            sp.GetRequiredService<ICurrentUser>()));
+            sp.GetRequiredService<ICurrentUser>(),
+            sp.GetService<IAuditActionHint>()));
 
         services.AddDbContext<CrmDbContext>((sp, options) =>
         {
@@ -49,6 +51,7 @@ public sealed class ServiceHarness : IDisposable
         services.AddScoped<IOwnerScope, OwnerScopeResolver>();
         services.AddScoped<IUserDirectory, UserDirectory>();
         services.AddScoped<AcxiomCrm.Application.Customers.ICustomerService, AcxiomCrm.Infrastructure.Customers.CustomerService>();
+        services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, AcxiomCrm.Infrastructure.Leads.LeadService>();
 
         var provider = services.BuildServiceProvider();
         return new ServiceHarness(provider);

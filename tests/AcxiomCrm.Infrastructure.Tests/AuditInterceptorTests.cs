@@ -45,12 +45,12 @@ public class AuditInterceptorTests : DbTestBase
         ");
     }
 
-    private TestCrmDbContext CreateContext(FakeCurrentUser? user = null, FakeClock? clock = null)
+    private TestCrmDbContext CreateContext(FakeCurrentUser? user = null, FakeClock? clock = null, AcxiomCrm.Application.Abstractions.IAuditActionHint? actionHint = null)
     {
         user ??= new FakeCurrentUser("test-user", "SalesExecutive", "test.user", "127.0.0.1", "corr-1");
         clock ??= new FakeClock(_fixedTime);
 
-        var interceptor = new AuditSaveChangesInterceptor(clock, user);
+        var interceptor = new AuditSaveChangesInterceptor(clock, user, actionHint);
 
         var options = new DbContextOptionsBuilder<TestCrmDbContext>()
             .UseSqlServer(Db.ConnectionString)
@@ -58,6 +58,40 @@ public class AuditInterceptorTests : DbTestBase
             .Options;
 
         return new TestCrmDbContext(options);
+    }
+
+    [Fact]
+    public async Task Action_hint_overrides_Update_once()
+    {
+        var hint = new AcxiomCrm.Application.Common.AuditActionHint();
+        await using var ctx = CreateContext(actionHint: hint);
+
+        var thing = new AuditedThing
+        {
+            Name = "Initial Name",
+            OwnerId = "owner-1"
+        };
+        ctx.AuditedThings.Add(thing);
+        await ctx.SaveChangesAsync();
+
+        // 1st update with hint -> StatusChanged
+        hint.Set(AuditActions.StatusChanged);
+        thing.Name = "Updated Name 1";
+        await ctx.SaveChangesAsync();
+
+        var log1 = await ctx.AuditLogs
+            .Where(a => a.EntityName == "AuditedThing" && a.Action == AuditActions.StatusChanged && a.RecordId == thing.Id.ToString(CultureInfo.InvariantCulture))
+            .SingleOrDefaultAsync();
+        log1.ShouldNotBeNull();
+
+        // 2nd update without hint -> must revert to Update
+        thing.Name = "Updated Name 2";
+        await ctx.SaveChangesAsync();
+
+        var log2 = await ctx.AuditLogs
+            .Where(a => a.EntityName == "AuditedThing" && a.Action == AuditActions.Update && a.RecordId == thing.Id.ToString(CultureInfo.InvariantCulture))
+            .SingleOrDefaultAsync();
+        log2.ShouldNotBeNull();
     }
 
     [Fact]
