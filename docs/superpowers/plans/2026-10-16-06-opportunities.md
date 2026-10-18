@@ -96,7 +96,7 @@ public interface IOpportunityService {
 - `OpportunityFactory : IOpportunityFactory` creates through the same internal path (rules, customer checks, audit) in the **caller's** transaction/context (no second SaveChanges commit; caller commits).
 - Audit: stage changes use `IAuditActionHint` `StageChanged` (old/new stage + probability in the diff); reopen adds `Details = "reopened"` via the writer on the same hint path.
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
   - `OpportunityServiceTests`: `Create_valid_derives_status_weighted_and_owner`, `Create_executive_owner_forced`, `Create_for_inactive_customer_rejected` (error on `CustomerId`: `Choose an active customer.`), `Create_for_out_of_scope_customer_rejected_same_message`, `Create_with_closed_stage_rejected`, `Update_open_applies_rules`, `Update_closed_is_conflict`, `Delete_soft_deletes`, `Search_filters_and_sorts`, `Weighted_in_list_equals_domain_rule`.
   - `OpportunityValidationTests`: PRD §5.4 examples as exact-message tests; Review Focus numerics; midnight boundary with `FakeClock` (UTC 18:29 / 18:30).
   - `OpportunityStageTests`: Theory of open-to-open moves; Won with/without note; Lost with/without reason; terminal → any move `Conflict`; reopen by manager OK/executive `Forbidden`/other-team `NotFound`; backward move with stale close date rejected until date updated (service-level: `ChangeStageAsync` rejects with `Expected Close Date cannot be in the past.` on field `ExpectedCloseDate`); audit has old/new stage; Won sets `ClosedDate = clock.Today`.
@@ -104,10 +104,10 @@ public interface IOpportunityService {
   - `OpportunityIdorTests`, `OpportunityAuditTests` per earlier patterns.
   - Updated `CustomerServiceTests.Delete_blocked_while_open_opportunities_exist` (`Conflict`, message `This customer has open opportunities. Close or reassign them first.`), `Delete_allowed_when_only_closed_opportunities`.
   - `LeadConversionTests.Creates_opportunity_when_requested`, `Invalid_opportunity_rolls_back_conversion` (now real).
-- [ ] **Step 2: Run** `dotnet test --filter "Opportunity|LeadConversion|CustomerServiceTests"`. Expected: FAIL.
-- [ ] **Step 3: Implement.** Board totals via a separate grouped aggregate query (never summing only materialised cards).
-- [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(opportunities): service, factory, board query and customer deletion guard`.
+- [x] **Step 2: Run** `dotnet test --filter "Opportunity|LeadConversion|CustomerServiceTests"`. Expected: FAIL.
+- [x] **Step 3: Implement.** Board totals via a separate grouped aggregate query (never summing only materialised cards).
+- [x] **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(opportunities): service, factory, board query and customer deletion guard`.
 
 ---
 

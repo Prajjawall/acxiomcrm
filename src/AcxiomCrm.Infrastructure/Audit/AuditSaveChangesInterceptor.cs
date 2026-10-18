@@ -235,6 +235,7 @@ public sealed class AuditSaveChangesInterceptor(IClock clock, ICurrentUser? curr
                             Result = AuditResult.Success,
                             OldValue = AuditSnapshot.Serialize(changedOld),
                             NewValue = AuditSnapshot.Serialize(changedNew),
+                            Details = actionHint?.TakeDetails(),
                             IpAddress = currentUser?.IpAddress,
                             CorrelationId = currentUser?.CorrelationId
                         };

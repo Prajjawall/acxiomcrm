@@ -268,8 +268,7 @@ public class LeadConversionTests : DbTestBase
     }
 
     [Fact]
-    [Trait("until", "plan-06")]
-    public async Task CreateOpportunity_true_without_factory_returns_validation_error_until_plan_06()
+    public async Task Creates_opportunity_when_requested()
     {
         await using var ctx = Db.CreateContext();
         var users = await TestUsers.CreateStandardAsync(ctx);
@@ -278,18 +277,71 @@ public class LeadConversionTests : DbTestBase
         var service = harness.Services.GetRequiredService<ILeadService>();
 
         var created = await service.CreateAsync(new CreateLeadCommand(
-            "Opp Lead", null, "opp.lead@example.com", "9876543210",
+            "Opp Lead", "Target Corp", "opp.lead@example.com", "9876543210",
             LeadSource.Website, LeadPriority.Medium, 1000m, null, null));
         var s1 = await service.ChangeStatusAsync(created.Value!.Id, LeadStatus.Contacted, created.Value.RowVersion);
         var s2 = await service.ChangeStatusAsync(created.Value.Id, LeadStatus.Qualified, s1.Value!.RowVersion);
 
-        var oppInput = new ConvertOpportunityInput("Test Opp", 1000m, 20, new DateOnly(2026, 11, 15), null);
+        var oppInput = new ConvertOpportunityInput("Test Opp", 150000m, 20, new DateOnly(2026, 11, 15), "Conversion opp notes");
+        var convertCmd = new ConvertLeadCommand(null, true, oppInput, s2.Value!.RowVersion);
+
+        var result = await service.ConvertAsync(created.Value.Id, convertCmd);
+        result.Succeeded.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.OpportunityId.ShouldNotBeNull();
+        result.Value.OpportunityId.Value.ShouldBeGreaterThan(0);
+
+        await using var verifyCtx = Db.CreateContext();
+        var opp = await verifyCtx.Opportunities.FindAsync(result.Value.OpportunityId.Value);
+        opp.ShouldNotBeNull();
+        opp.Name.ShouldBe("Test Opp");
+        opp.Amount.ShouldBe(150000m);
+        opp.Probability.ShouldBe((byte)20);
+        opp.ExpectedCloseDate.ShouldBe(new DateOnly(2026, 11, 15));
+        opp.CustomerId.ShouldBe(result.Value.CustomerId);
+        opp.LeadId.ShouldBe(created.Value.Id);
+        opp.Stage.ShouldBe(OpportunityStage.Qualification);
+        opp.Status.ShouldBe(OpportunityStatus.Open);
+        opp.Notes.ShouldBe("Conversion opp notes");
+
+        var lead = await verifyCtx.Leads.FindAsync(created.Value.Id);
+        lead!.Status.ShouldBe(LeadStatus.Converted);
+        lead.ConvertedOpportunityId.ShouldBe(opp.Id);
+    }
+
+    [Fact]
+    public async Task Invalid_opportunity_rolls_back_conversion()
+    {
+        await using var ctx = Db.CreateContext();
+        var users = await TestUsers.CreateStandardAsync(ctx);
+
+        using var harness = ServiceHarness.Create(Db, users.AdminId, Roles.Admin);
+        var service = harness.Services.GetRequiredService<ILeadService>();
+
+        var created = await service.CreateAsync(new CreateLeadCommand(
+            "Rollback Lead", null, "rollback.lead@example.com", "9876543210",
+            LeadSource.Website, LeadPriority.Medium, 1000m, null, null));
+        var s1 = await service.ChangeStatusAsync(created.Value!.Id, LeadStatus.Contacted, created.Value.RowVersion);
+        var s2 = await service.ChangeStatusAsync(created.Value.Id, LeadStatus.Qualified, s1.Value!.RowVersion);
+
+        // Invalid amount 0
+        var oppInput = new ConvertOpportunityInput("Invalid Opp", 0m, 20, new DateOnly(2026, 11, 15), null);
         var convertCmd = new ConvertLeadCommand(null, true, oppInput, s2.Value!.RowVersion);
 
         var result = await service.ConvertAsync(created.Value.Id, convertCmd);
         result.Succeeded.ShouldBeFalse();
         result.Kind.ShouldBe(ErrorKind.Validation);
-        result.Errors.ShouldContain(e => e.Field == "Opportunity");
+
+        await using var verifyCtx = Db.CreateContext();
+        var lead = await verifyCtx.Leads.FindAsync(created.Value.Id);
+        lead!.Status.ShouldBe(LeadStatus.Qualified);
+        lead.ConvertedCustomerId.ShouldBeNull();
+
+        var customer = await verifyCtx.Customers.FirstOrDefaultAsync(c => c.Email == "rollback.lead@example.com");
+        customer.ShouldBeNull();
+
+        var opp = await verifyCtx.Opportunities.FirstOrDefaultAsync(o => o.Name == "Invalid Opp");
+        opp.ShouldBeNull();
     }
 
     [Fact]

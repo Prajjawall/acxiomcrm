@@ -55,7 +55,8 @@ public sealed class ServiceHarness : IDisposable
         services.AddScoped<IOwnerScope, OwnerScopeResolver>();
         services.AddScoped<IUserDirectory, UserDirectory>();
         services.AddScoped<AcxiomCrm.Application.Customers.ICustomerService, AcxiomCrm.Infrastructure.Customers.CustomerService>();
-        services.AddScoped<AcxiomCrm.Application.Leads.IOpportunityFactory, AcxiomCrm.Infrastructure.Opportunities.NotAvailableOpportunityFactory>();
+        services.AddScoped<AcxiomCrm.Application.Opportunities.IOpportunityService, AcxiomCrm.Infrastructure.Opportunities.OpportunityService>();
+        services.AddScoped<AcxiomCrm.Application.Leads.IOpportunityFactory, AcxiomCrm.Infrastructure.Opportunities.OpportunityFactory>();
         services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, AcxiomCrm.Infrastructure.Leads.LeadService>();
 
         configureServices?.Invoke(services);

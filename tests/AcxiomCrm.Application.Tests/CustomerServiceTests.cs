@@ -442,4 +442,55 @@ public class CustomerServiceTests : DbTestBase
             create.Kind.ShouldBe(ErrorKind.Forbidden);
         }
     }
+
+    [Fact]
+    public async Task Delete_blocked_while_open_opportunities_exist()
+    {
+        await using var ctx = Db.CreateContext();
+        var users = await TestUsers.CreateStandardAsync(ctx);
+
+        var customer = Customer.Create("Cust Opp", null, "opp.cust@example.com", "9876543210", null, null, null, CustomerStatus.Active, users.AdminId, null);
+        ctx.Customers.Add(customer);
+        await ctx.SaveChangesAsync();
+
+        var opp = Opportunity.Create("Open Deal", customer.Id, 50000m, OpportunityStage.Qualification, 20, new DateOnly(2026, 12, 31), users.AdminId);
+        ctx.Opportunities.Add(opp);
+        await ctx.SaveChangesAsync();
+
+        using var harness = ServiceHarness.Create(Db, users.AdminId, Roles.Admin);
+        var service = harness.Services.GetRequiredService<ICustomerService>();
+
+        var result = await service.DeleteAsync(customer.Id);
+        result.Succeeded.ShouldBeFalse();
+        result.Kind.ShouldBe(ErrorKind.Conflict);
+        result.Errors.ShouldContain(e => e.Message == "This customer has open opportunities. Close or reassign them first.");
+    }
+
+    [Fact]
+    public async Task Delete_allowed_when_only_closed_opportunities()
+    {
+        await using var ctx = Db.CreateContext();
+        var users = await TestUsers.CreateStandardAsync(ctx);
+
+        var customer = Customer.Create("Cust Closed Opp", null, "closed.cust@example.com", "9876543210", null, null, null, CustomerStatus.Active, users.AdminId, null);
+        ctx.Customers.Add(customer);
+        await ctx.SaveChangesAsync();
+
+        var opp = Opportunity.Create(
+            "Won Deal", customer.Id, 50000m, OpportunityStage.Won, 100,
+            new DateOnly(2026, 10, 1), users.AdminId, closeNote: "Won note", closedDate: new DateOnly(2026, 10, 1));
+        ctx.Opportunities.Add(opp);
+        await ctx.SaveChangesAsync();
+
+        using var harness = ServiceHarness.Create(Db, users.AdminId, Roles.Admin);
+        var service = harness.Services.GetRequiredService<ICustomerService>();
+
+        var result = await service.DeleteAsync(customer.Id);
+        result.Succeeded.ShouldBeTrue();
+
+        await using var verifyCtx = Db.CreateContext();
+        var deletedCust = await verifyCtx.Customers.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Id == customer.Id);
+        deletedCust.ShouldNotBeNull();
+        deletedCust.IsDeleted.ShouldBeTrue();
+    }
 }

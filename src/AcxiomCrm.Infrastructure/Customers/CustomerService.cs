@@ -399,6 +399,13 @@ public class CustomerService : ICustomerService
             return Result.Fail(ErrorKind.Forbidden);
         }
 
+        var hasOpenOpportunities = await _db.Opportunities
+            .AnyAsync(o => o.CustomerId == id && o.Status == OpportunityStatus.Open, ct);
+        if (hasOpenOpportunities)
+        {
+            return Result.Fail(ErrorKind.Conflict, [new FieldError(string.Empty, "This customer has open opportunities. Close or reassign them first.")]);
+        }
+
         _db.Customers.Remove(customer);
         await _db.SaveChangesAsync(ct);
         return Result.Ok();

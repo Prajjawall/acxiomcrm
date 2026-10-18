@@ -6,5 +6,7 @@ namespace AcxiomCrm.Application.Abstractions;
 public interface IAuditActionHint
 {
     void Set(string action);
+    void Set(string action, string? details);
     string? Take();
+    string? TakeDetails();
 }
