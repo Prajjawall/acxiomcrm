@@ -67,6 +67,28 @@ public sealed class Activity : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
         };
     }
 
+    public void Update(
+        ActivityType type,
+        string subject,
+        string? description,
+        DateTime activityDate,
+        int? customerId,
+        int? leadId,
+        int? opportunityId,
+        string assignedToId,
+        ActivityStatus status)
+    {
+        Type = type;
+        Subject = subject;
+        Description = description;
+        ActivityDate = activityDate;
+        CustomerId = customerId;
+        LeadId = leadId;
+        OpportunityId = opportunityId;
+        OwnerId = assignedToId;
+        Status = status;
+    }
+
     public void SoftDelete(string deletedBy, DateTime deletedDate)
     {
         IsDeleted = true;
