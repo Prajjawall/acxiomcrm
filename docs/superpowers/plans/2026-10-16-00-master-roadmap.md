@@ -53,7 +53,7 @@ Update as work completes.
 | 7 | 05 Leads | ☑ | plan/05-leads | 2026-10-18 |
 | 8 | 06 Opportunities | ☑ | plan/06-opportunities | 2026-10-19 |
 | 9 | 07 Follow-ups & activities | ☑ | plan/07-followups-activities | 2026-10-19 |
-| 10 | 09 Users & roles | ☐ | | |
+| 10 | 09 Users & roles | ☑ | plan/09-users-roles | 2026-10-19 |
 | 11 | 10 REST API | ☐ | | |
 | 12 | 11 Dashboard & reports | ☐ | | |
 | 13 | 12 Hardening & release | ☐ | | |

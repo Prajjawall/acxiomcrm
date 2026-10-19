@@ -27,7 +27,7 @@ public class NavigationVisibilityTests
     }
 
     [Fact]
-    public void Manager_sees_Sales_Activity_Insights_and_no_Administration()
+    public void Manager_sees_Sales_Activity_Insights_and_Users()
     {
         var user = CreateUserWithRole(Roles.Manager);
         var groups = NavigationProvider.GetFor(user);
@@ -36,7 +36,11 @@ public class NavigationVisibilityTests
         groups.ShouldContain(g => g.Title == "Sales");
         groups.ShouldContain(g => g.Title == "Activity");
         groups.ShouldContain(g => g.Title == "Insights");
-        groups.ShouldNotContain(g => g.Title == "Administration");
+        groups.ShouldContain(g => g.Title == "Administration");
+        var adminGroup = groups.First(g => g.Title == "Administration");
+        adminGroup.Items.ShouldContain(i => i.Label == "Users");
+        adminGroup.Items.ShouldNotContain(i => i.Label == "Roles");
+        adminGroup.Items.ShouldNotContain(i => i.Label == "Audit Log");
     }
 
     [Fact]
