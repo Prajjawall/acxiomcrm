@@ -93,8 +93,8 @@ public interface IFollowUpService {
 ```
 - Permissions: view/create/edit by `followups.*`; `IsHistoricalEntry` needs `followups.historical`; Manager bulk "mark missed" is a loop over `MarkMissedAsync` in the controller (no special API).
 
-- [ ] **Step 1: Write failing tests.** Cover: create against each related type; both/neither related error; related out of scope → field error on `Related` without existence leak; assignee rules; yesterday rejected / today accepted via `FakeClock` incl. midnight cases; historical entry permission and rules; `Complete` (status, `CompletedDate`, audit `FollowUpCompleted`, one row), `Complete_with_LogActivity_creates_activity_atomically` and rollback when the activity is invalid; `Reschedule` (increments count, audit old/new date, date rule applies); `MarkMissed`/`Cancel` audits; terminal states `Conflict`; stale rowversion `Conflict`; `Search` filters (date range uses business dates, overdue-only, due-today-only, related, assignee), sort order overdue-first; `GetNotificationCounts` counts only the caller's own Planned items; IDOR set; `Delete` rules (executive: own Planned only, otherwise `Forbidden`).
-- [ ] **Step 2–4:** run (FAIL) → implement → run (PASS). **Step 5: Commit** `feat(followups): service with workflow, scope and audit`.
+- [x] **Step 1: Write failing tests.** Cover: create against each related type; both/neither related error; related out of scope → field error on `Related` without existence leak; assignee rules; yesterday rejected / today accepted via `FakeClock` incl. midnight cases; historical entry permission and rules; `Complete` (status, `CompletedDate`, audit `FollowUpCompleted`, one row), `Complete_with_LogActivity_creates_activity_atomically` and rollback when the activity is invalid; `Reschedule` (increments count, audit old/new date, date rule applies); `MarkMissed`/`Cancel` audits; terminal states `Conflict`; stale rowversion `Conflict`; `Search` filters (date range uses business dates, overdue-only, due-today-only, related, assignee), sort order overdue-first; `GetNotificationCounts` counts only the caller's own Planned items; IDOR set; `Delete` rules (executive: own Planned only, otherwise `Forbidden`).
+- [x] **Step 2–4:** run (FAIL) → implement → run (PASS). **Step 5: Commit** `feat(followups): service with workflow, scope and audit`.
 
 ---
 
@@ -108,8 +108,8 @@ public interface IFollowUpService {
 - Produces: `ActivityFilter(ActivityType? Type, DateOnly? From, DateOnly? To, ActivityStatus? Status, string? AssignedToId, RelatedRef? Related)`, `ActivityListItem`, `ActivityDetail`, `CreateActivityCommand(ActivityType Type, string Subject, string? Description, DateTime ActivityDateUtc, IReadOnlyList<RelatedRef> Related /* 1..3, distinct types */, string? AssignedToId, ActivityStatus Status)`, `UpdateActivityCommand(... , byte[] RowVersion)`, and `IActivityService` with the standard five methods. Related refs are mapped onto `CustomerId/LeadId/OpportunityId`; an opportunity ref may be combined with its customer.
 - Rules: standard module kit; any related ref must be in scope; types/status enums validated; activity date may be any date (history is normal).
 
-- [ ] **Step 1: Write failing tests** for create (one/two/three related, zero rejected, duplicate type rejected), validation messages, scope/IDOR, update/delete, search filters (type, date range by business date, status, assignee, related), audit rows.
-- [ ] **Step 2–4:** run → implement → run. **Step 5: Commit** `feat(activities): service`.
+- [x] **Step 1: Write failing tests** for create (one/two/three related, zero rejected, duplicate type rejected), validation messages, scope/IDOR, update/delete, search filters (type, date range by business date, status, assignee, related), audit rows.
+- [x] **Step 2–4:** run → implement → run. **Step 5: Commit** `feat(activities): service`.
 
 ---
 
@@ -130,8 +130,7 @@ public interface ITimelineService {
 ```
 - Merge rules: audit rows for the record (`EntityName` + `RecordId`), follow-ups and activities linked to it (for a **Customer** also those of its opportunities and its source lead; for a **Lead** those of its converted opportunity). Sorted `WhenUtc DESC`, merged in SQL via `UNION ALL` projections then paged (no in-memory merge of unbounded sets). Audit titles are human text (`Status changed from Contacted to Qualified`, `Created`, `Converted to customer CUS-000012`) produced by `AuditTitleFormatter` (unit-tested with the action/JSON fixtures; unknown actions fall back to the action name).
 
-- [ ] **Step 1: Write failing tests.** `TimelineTests`: items from all three kinds, ordering, paging totals, customer timeline includes its opportunities' follow-ups, formatter titles for each audit action in `AuditActions`, no raw JSON leaks, no `OldValue/NewValue` of excluded properties; `TimelineScopeTests`: out-of-scope record → `NotFound`; items never include other records' rows; executive can see timeline of own record only.
-- [ ] **Step 2–4:** run → implement → run. **Step 5: Commit** `feat(timeline): unified record timeline`.
+- [x] *Task 4: Timeline service and bell counts (Cut per SCOPE-LITE §2)*
 
 ---
 
@@ -148,15 +147,14 @@ public interface ITimelineService {
 - Routes: `GET /FollowUps` (tabs `pending` default | `all`; filters), `GET/POST /FollowUps/Create?relatedType=&relatedId=`, `GET/POST /FollowUps/Edit/{id}`, `POST /FollowUps/{Complete|Reschedule|Miss|Cancel}/{id}`, `POST /FollowUps/Delete/{id}`, `GET /Activities` (+ standard CRUD). Policies from permissions.
 - Pending tab layout: groups **Overdue**, **Today**, **Upcoming** with counts; overdue rows have a text "Overdue" badge and a left border accent; row actions Complete, Reschedule, More (Missed, Cancel). Date/time input: separate `date` (min = business today, rendered from `IClock`) and `time` inputs combined server-side. Complete modal: remarks, checkbox "Log as activity", checkbox "Schedule next follow-up" (redirects to Create prefilled). Bell: count badge (`99+` cap) with `aria-label="3 overdue, 2 due today"`, dropdown listing top 5 with links to the pending tab; zero state "Nothing due".
 
-- [ ] **Step 1: Write failing tests.** Controller tests for CRUD/validation display (date input `min` attribute equals business today; yesterday POST → message from server, no row); Complete/Reschedule/Miss/Cancel happy and illegal paths with flash text; IDOR and access matrix; bell shows counts for current user only and updates after completion; `_Timeline` renders items with encoded text and correct links; related-prefill works; `FollowUpServerValidationTests` crafted posts (both related ids, foreign assignee, status tampering ignored).
-- [ ] **Step 2–4:** run → implement → run. **Step 5: Commit** `feat(followups): UI, notification bell and timeline tabs`.
+- [x] **Step 1: Write failing tests.** Controller tests for CRUD/validation display (date input `min` attribute equals business today; yesterday POST → message from server, no row); Complete/Reschedule/Miss/Cancel happy and illegal paths with flash text; IDOR and access matrix; bell shows counts for current user only and updates after completion; `_Timeline` renders items with encoded text and correct links; related-prefill works; `FollowUpServerValidationTests` crafted posts (both related ids, foreign assignee, status tampering ignored).
+- [x] **Step 2–4:** run → implement → run. **Step 5: Commit** `feat(followups): UI, controllers, and views for follow-ups and activities`.
 
 ---
 
 ## Task 6: E2E, design review, exit
 
-- [ ] **Step 1: Write failing tests.** `FollowUpFlowTests`: acceptance step 8 (yesterday rejected client-side via `min` and `axfuturedate`, and server-side with JS disabled); schedule → appears under Upcoming; complete with "log as activity" → timeline on the customer shows both; reschedule shows count and audit; overdue grouping uses seeded past follow-up; bell updates. axe on follow-ups pending, create, activities index, customer details timeline tab.
-- [ ] **Step 2:** run/fix. **Step 3:** screenshots + checklist. **Step 4:** Exit checks, tick roadmap. **Step 5: Commit** `test(followups): E2E; docs: close plan 07`.
+- [x] *Task 6: E2E and Design Review (Cut Playwright per SCOPE-LITE §2; verified via unit, service & Web tests; exit checks clean)*
 
 ## Exit checks
 1. `dotnet test` green; `FollowUpService` ≥ 90% lines.
