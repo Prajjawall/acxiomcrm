@@ -1,0 +1,163 @@
+@model AcxiomCrm.Web.ViewModels.Activities.ActivityDetailsViewModel
+@using AcxiomCrm.Domain.Enums
+@using AcxiomCrm.Web.Presentation
+
+@{
+    var detail = Model.Detail;
+    ViewData["Title"] = $"{detail.Subject} - Activity Details";
+    ViewData["Page"] = "activities";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to activities
+        </a>
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h1 class="h3 mb-0">@detail.Subject</h1>
+                <partial name="_StatusBadge" model='StatusBadges.For("Activity", detail.Status)' />
+                <span class="badge bg-light text-dark border">@Labels.For(detail.Type)</span>
+            </div>
+            <div class="text-muted small mt-1">
+                Occurred on @detail.ActivityDateUtc.ToString("dd MMM yyyy, HH:mm") UTC
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        @if (Model.CanEdit)
+        {
+            <a asp-action="Edit" asp-route-id="@detail.Id" class="btn btn-outline-secondary">
+                Edit
+            </a>
+        }
+        @if (Model.CanDelete)
+        {
+            <form method="post" asp-action="Delete" asp-route-id="@detail.Id" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete this activity?');">
+                    Delete
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Main Details -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Activity Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Type</dt>
+                    <dd class="col-sm-8">@Labels.For(detail.Type)</dd>
+
+                    <dt class="col-sm-4 text-muted">Date & Time</dt>
+                    <dd class="col-sm-8">@detail.ActivityDateUtc.ToString("dd MMM yyyy, HH:mm") UTC</dd>
+
+                    <dt class="col-sm-4 text-muted">Status</dt>
+                    <dd class="col-sm-8">
+                        <partial name="_StatusBadge" model='StatusBadges.For("Activity", detail.Status)' />
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Assigned to</dt>
+                    <dd class="col-sm-8">@detail.AssignedToName</dd>
+
+                    <dt class="col-sm-4 text-muted">Created on</dt>
+                    <dd class="col-sm-8">@detail.CreatedDate.ToString("dd MMM yyyy, HH:mm") UTC</dd>
+
+                    <dt class="col-sm-4 text-muted">Related Records</dt>
+                    <dd class="col-sm-8">
+                        <div class="d-flex flex-column gap-1">
+                            @if (detail.CustomerId.HasValue)
+                            {
+                                <div>
+                                    <span class="badge bg-light text-dark border me-1">Customer</span>
+                                    <a asp-controller="Customers" asp-action="Details" asp-route-id="@detail.CustomerId.Value" class="text-decoration-none fw-semibold">
+                                        @(detail.CustomerName ?? $"Customer #{detail.CustomerId.Value}")
+                                    </a>
+                                </div>
+                            }
+                            @if (detail.LeadId.HasValue)
+                            {
+                                <div>
+                                    <span class="badge bg-light text-dark border me-1">Lead</span>
+                                    <a asp-controller="Leads" asp-action="Details" asp-route-id="@detail.LeadId.Value" class="text-decoration-none fw-semibold">
+                                        @(detail.LeadName ?? $"Lead #{detail.LeadId.Value}")
+                                    </a>
+                                </div>
+                            }
+                            @if (detail.OpportunityId.HasValue)
+                            {
+                                <div>
+                                    <span class="badge bg-light text-dark border me-1">Opportunity</span>
+                                    <a asp-controller="Opportunities" asp-action="Details" asp-route-id="@detail.OpportunityId.Value" class="text-decoration-none fw-semibold">
+                                        @(detail.OpportunityName ?? $"Opportunity #{detail.OpportunityId.Value}")
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Description</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrWhiteSpace(detail.Description))
+                        {
+                            <div class="p-3 bg-light rounded text-pre-wrap">@detail.Description</div>
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">No description recorded.</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Audit History -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Audit History</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.History.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">No audit records found.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var record in Model.History)
+                                {
+                                    <tr>
+                                        <td class="small">@record.CreatedDateUtc.ToString("dd MMM yyyy, HH:mm")</td>
+                                        <td class="small">@record.UserName</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">@record.Action</span>
+                                        </td>
+                                        <td class="small text-muted">@record.Details</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

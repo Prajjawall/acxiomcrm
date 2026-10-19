@@ -270,7 +270,7 @@ public sealed class OpportunitiesController : Controller
             var detailsVm = new OpportunityDetailsViewModel
             {
                 Detail = detailResult.Value,
-                History = auditResult.Items,
+                History = auditResult?.Items ?? [],
                 CanEdit = _currentUser.Can(Permissions.OpportunitiesEdit) && detailResult.Value.Status == OpportunityStatus.Open,
                 CanDelete = _currentUser.Can(Permissions.OpportunitiesDelete),
                 CanReopen = _currentUser.Can(Permissions.OpportunitiesReopen) && detailResult.Value.Status != OpportunityStatus.Open
