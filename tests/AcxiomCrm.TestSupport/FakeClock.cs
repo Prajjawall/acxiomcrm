@@ -34,6 +34,18 @@ public sealed class FakeClock : IClock
         return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, _timeZoneInfo);
     }
 
+    public DateTime ToUtcFromBusinessLocal(DateTime local)
+    {
+        var unspecified = DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, _timeZoneInfo);
+    }
+
+    public DateOnly BusinessDateOf(DateTime utc)
+    {
+        var local = ToBusinessLocal(utc);
+        return DateOnly.FromDateTime(local);
+    }
+
     public void Set(DateTime utcNow)
     {
         _utcNow = new DateTimeOffset(DateTime.SpecifyKind(utcNow, DateTimeKind.Utc));

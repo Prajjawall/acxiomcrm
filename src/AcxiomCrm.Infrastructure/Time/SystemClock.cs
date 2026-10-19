@@ -39,4 +39,16 @@ public sealed class SystemClock : IClock
         var utcDateTime = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
         return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, _timeZoneInfo);
     }
+
+    public DateTime ToUtcFromBusinessLocal(DateTime local)
+    {
+        var unspecified = DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, _timeZoneInfo);
+    }
+
+    public DateOnly BusinessDateOf(DateTime utc)
+    {
+        var local = ToBusinessLocal(utc);
+        return DateOnly.FromDateTime(local);
+    }
 }

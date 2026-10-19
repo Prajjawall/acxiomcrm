@@ -50,9 +50,9 @@
   - `FollowUp : Entity, IOwnedEntity (OwnerId => AssignedToId), ISoftDeletable, IAuditedEntity, IHasTimestamps` with `CustomerId?, LeadId?, OpportunityId?, FollowUpDate, Subject, Type, Status, Remarks, AssignedToId, CompletedDate?, RescheduleCount, IsHistoricalEntry, RowVersion`; methods `Complete(string? remarks, DateTime nowUtc)`, `Reschedule(DateTime newUtc)`, `MarkMissed()`, `Cancel()` each throwing `InvalidOperationException` unless `Planned`; derived `RelatedType`.
   - `Activity` likewise (`ActivityType Type`, `Subject`, `Description`, `ActivityDate`, three related ids, `AssignedToId`, `Status`).
 
-- [ ] **Step 1: Write failing tests.** `SystemClockTests.ToUtcFromBusinessLocal_roundtrips_and_handles_DST_zone`, `BusinessDateOf_at_boundary`; `FollowUpRulesTests`: yesterday invalid with exact message, today valid, tomorrow valid, historical bypass, `relatedCount` 0/2 → `Choose exactly one related record.`, subject required/length; `IsOverdue`/`IsDueToday` truth tables incl. non-Planned never overdue; `FollowUpEntityTests`: state-machine Theory (only Planned transitions; counts); `ActivityRulesTests`; constraint tests: `CK_FollowUps_ExactlyOneRelated`, `CK_Activities_AtLeastOneRelated`, status/type enum checks, FK restrict, index names.
-- [ ] **Step 2: Run.** Expected: FAIL. **Step 3: Implement.** **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(followups): clock helpers, entities, rules, migration`.
+- [x] **Step 1: Write failing tests.** `SystemClockTests.ToUtcFromBusinessLocal_roundtrips_and_handles_DST_zone`, `BusinessDateOf_at_boundary`; `FollowUpRulesTests`: yesterday invalid with exact message, today valid, tomorrow valid, historical bypass, `relatedCount` 0/2 → `Choose exactly one related record.`, subject required/length; `IsOverdue`/`IsDueToday` truth tables incl. non-Planned never overdue; `FollowUpEntityTests`: state-machine Theory (only Planned transitions; counts); `ActivityRulesTests`; constraint tests: `CK_FollowUps_ExactlyOneRelated`, `CK_Activities_AtLeastOneRelated`, status/type enum checks, FK restrict, index names.
+- [x] **Step 2: Run.** Expected: FAIL. **Step 3: Implement.** **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(followups): clock helpers, entities, rules, migration`.
 
 ---
 

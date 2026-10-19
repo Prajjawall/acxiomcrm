@@ -10,6 +10,8 @@ public interface ICrmDbContext
     DbSet<Customer> Customers { get; }
     DbSet<Lead> Leads { get; }
     DbSet<Opportunity> Opportunities { get; }
+    DbSet<FollowUp> FollowUps { get; }
+    DbSet<Activity> Activities { get; }
     IQueryable<AcxiomCrm.Application.Users.UserSummary> Users { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);

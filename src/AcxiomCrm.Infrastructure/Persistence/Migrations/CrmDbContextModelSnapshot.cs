@@ -69,6 +69,108 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                     b.ToView("vw_UserSummary", (string)null);
                 });
 
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.Activity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ActivityId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActivityDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("AssignedToId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("LeadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<int?>("OpportunityId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("IX_Activities_CustomerId");
+
+                    b.HasIndex("LeadId")
+                        .HasDatabaseName("IX_Activities_LeadId");
+
+                    b.HasIndex("OpportunityId")
+                        .HasDatabaseName("IX_Activities_OpportunityId");
+
+                    b.HasIndex("AssignedToId", "ActivityDate")
+                        .HasDatabaseName("IX_Activities_AssignedTo_ActivityDate");
+
+                    b.ToTable("Activities", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Activities_AtLeastOneRelated", "(CASE WHEN CustomerId IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN LeadId IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN OpportunityId IS NOT NULL THEN 1 ELSE 0 END) >= 1");
+
+                            t.HasCheckConstraint("CK_Activities_Status", "Status IN (1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_Activities_Type", "Type IN (1, 2, 3, 4)");
+                        });
+                });
+
             modelBuilder.Entity("AcxiomCrm.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<long>("AuditLogId")
@@ -276,6 +378,125 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("CK_Customers_Phone", "Phone LIKE '[6-9]%' AND LEN(Phone) = 10");
 
                             t.HasCheckConstraint("CK_Customers_Status", "Status IN (1, 2)");
+                        });
+                });
+
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.FollowUp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("FollowUpId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedToId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<DateTime>("FollowUpDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsHistoricalEntry")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("LeadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)");
+
+                    b.Property<int?>("OpportunityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("RescheduleCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("IX_FollowUps_CustomerId");
+
+                    b.HasIndex("LeadId")
+                        .HasDatabaseName("IX_FollowUps_LeadId");
+
+                    b.HasIndex("OpportunityId")
+                        .HasDatabaseName("IX_FollowUps_OpportunityId");
+
+                    b.HasIndex("AssignedToId", "FollowUpDate")
+                        .HasDatabaseName("IX_FollowUps_AssignedTo_FollowUpDate");
+
+                    b.HasIndex("Status", "FollowUpDate")
+                        .HasDatabaseName("IX_FollowUps_Status_FollowUpDate");
+
+                    b.ToTable("FollowUps", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FollowUps_ExactlyOneRelated", "(CASE WHEN CustomerId IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN LeadId IS NOT NULL THEN 1 ELSE 0 END + CASE WHEN OpportunityId IS NOT NULL THEN 1 ELSE 0 END) = 1");
+
+                            t.HasCheckConstraint("CK_FollowUps_Status", "Status IN (1, 2, 3, 4)");
+
+                            t.HasCheckConstraint("CK_FollowUps_Type", "Type IN (1, 2, 3, 4, 5)");
                         });
                 });
 
@@ -773,6 +994,36 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.Activity", b =>
+                {
+                    b.HasOne("AcxiomCrm.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedToId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AcxiomCrm.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AcxiomCrm.Domain.Entities.Lead", "Lead")
+                        .WithMany()
+                        .HasForeignKey("LeadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AcxiomCrm.Domain.Entities.Opportunity", "Opportunity")
+                        .WithMany()
+                        .HasForeignKey("OpportunityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Lead");
+
+                    b.Navigation("Opportunity");
+                });
+
             modelBuilder.Entity("AcxiomCrm.Domain.Entities.Customer", b =>
                 {
                     b.HasOne("AcxiomCrm.Infrastructure.Identity.ApplicationUser", null)
@@ -780,6 +1031,36 @@ namespace AcxiomCrm.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AcxiomCrm.Domain.Entities.FollowUp", b =>
+                {
+                    b.HasOne("AcxiomCrm.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedToId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AcxiomCrm.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AcxiomCrm.Domain.Entities.Lead", "Lead")
+                        .WithMany()
+                        .HasForeignKey("LeadId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AcxiomCrm.Domain.Entities.Opportunity", "Opportunity")
+                        .WithMany()
+                        .HasForeignKey("OpportunityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Lead");
+
+                    b.Navigation("Opportunity");
                 });
 
             modelBuilder.Entity("AcxiomCrm.Domain.Entities.Lead", b =>

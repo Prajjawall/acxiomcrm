@@ -16,6 +16,8 @@ public class CrmDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<Opportunity> Opportunities => Set<Opportunity>();
+    public DbSet<FollowUp> FollowUps => Set<FollowUp>();
+    public DbSet<Activity> Activities => Set<Activity>();
     IQueryable<AcxiomCrm.Application.Users.UserSummary> ICrmDbContext.Users => Set<AcxiomCrm.Application.Users.UserSummary>();
 
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default) =>
