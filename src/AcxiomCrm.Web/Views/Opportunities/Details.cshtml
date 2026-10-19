@@ -1,0 +1,276 @@
+@model AcxiomCrm.Web.ViewModels.Opportunities.OpportunityDetailsViewModel
+@using AcxiomCrm.Application.Abstractions
+@using AcxiomCrm.Domain.Enums
+@using AcxiomCrm.Domain.Rules
+@using AcxiomCrm.Web.Presentation
+@inject IClock Clock
+
+@{
+    var detail = Model.Detail;
+    ViewData["Title"] = detail.Name;
+    ViewData["Page"] = "opportunities";
+
+    var isOverdue = detail.Status == OpportunityStatus.Open && detail.ExpectedCloseDate < Clock.Today;
+    var rowVersionBase64 = Convert.ToBase64String(detail.RowVersion);
+}
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-link text-decoration-none px-0 mb-2">
+            &larr; Back to opportunities
+        </a>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <h1 class="h3 mb-0">@detail.Name</h1>
+            <partial name="_StatusBadge" model='StatusBadges.For("Opportunity", detail.Stage)' />
+            <partial name="_StatusBadge" model='StatusBadges.For("Opportunity", detail.Status)' />
+            @if (isOverdue)
+            {
+                <span class="badge bg-danger-subtle text-danger" id="detailOverdueBadge">Overdue</span>
+            }
+        </div>
+        <div class="text-muted small mt-1">
+            Customer:
+            <a asp-controller="Customers" asp-action="Details" asp-route-id="@detail.CustomerId" class="fw-medium text-decoration-none">
+                @detail.CustomerName
+            </a>
+            <span class="font-monospace text-muted">(@detail.CustomerCode)</span>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        @if (Model.CanEdit)
+        {
+            <a asp-action="Edit" asp-route-id="@detail.Id" class="btn btn-outline-primary btn-sm" id="editOppBtn">
+                Edit
+            </a>
+        }
+
+        @if (Model.CanReopen)
+        {
+            <form method="post" asp-action="Reopen" asp-route-id="@detail.Id" class="d-inline">
+                <input type="hidden" name="rowVersion" value="@rowVersionBase64" />
+                <button type="submit" class="btn btn-outline-warning btn-sm" id="reopenOppBtn">
+                    Reopen
+                </button>
+            </form>
+        }
+
+        @if (Model.CanDelete)
+        {
+            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteOppModal" id="deleteOppBtn">
+                Delete
+            </button>
+        }
+    </div>
+</div>
+
+<!-- Stage Progression Pipeline -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                @foreach (var stage in OpportunityRules.OpenStages)
+                {
+                    var isCurrent = detail.Stage == stage;
+                    var isPast = detail.Status == OpportunityStatus.Won || (int)detail.Stage > (int)stage;
+                    var badgeClass = isCurrent
+                        ? "btn-primary text-white"
+                        : (isPast ? "btn-light text-muted" : "btn-light text-secondary opacity-75");
+
+                    <span class="btn btn-sm @badgeClass disabled px-3 fw-semibold rounded-pill">
+                        @Labels.For(stage)
+                    </span>
+                    @if (stage != OpportunityRules.OpenStages.Last())
+                    {
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    }
+                }
+
+                @if (detail.Status == OpportunityStatus.Won)
+                {
+                    <i class="bi bi-chevron-right text-muted small"></i>
+                    <span class="btn btn-sm btn-success text-white disabled px-3 fw-semibold rounded-pill">
+                        Won
+                    </span>
+                }
+                else if (detail.Status == OpportunityStatus.Lost)
+                {
+                    <i class="bi bi-chevron-right text-muted small"></i>
+                    <span class="btn btn-sm btn-danger text-white disabled px-3 fw-semibold rounded-pill">
+                        Lost
+                    </span>
+                }
+            </div>
+
+            <!-- Stage Action Buttons -->
+            <div>
+                <partial name="_StageActions" model="Model" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Key Facts -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-semibold">Opportunity Facts</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-5 text-muted">Amount</dt>
+                    <dd class="col-sm-7 ax-num fw-semibold fs-6 text-dark">
+                        @Formatters.Money(detail.Amount)
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Probability</dt>
+                    <dd class="col-sm-7 font-monospace fw-medium">
+                        @detail.Probability%
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Weighted Value</dt>
+                    <dd class="col-sm-7 ax-num fw-semibold text-primary">
+                        @Formatters.Money(detail.WeightedAmount)
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Expected Close</dt>
+                    <dd class="col-sm-7">
+                        @Formatters.Date(detail.ExpectedCloseDate)
+                        @if (isOverdue)
+                        {
+                            <span class="badge bg-danger-subtle text-danger ms-1">Overdue</span>
+                        }
+                    </dd>
+
+                    @if (detail.ClosedDate.HasValue)
+                    {
+                        <dt class="col-sm-5 text-muted">Closed Date</dt>
+                        <dd class="col-sm-7">@Formatters.Date(detail.ClosedDate.Value)</dd>
+                    }
+
+                    @if (!string.IsNullOrEmpty(detail.CloseNote))
+                    {
+                        <dt class="col-sm-5 text-muted">Close Note</dt>
+                        <dd class="col-sm-7 text-break">@detail.CloseNote</dd>
+                    }
+
+                    <dt class="col-sm-5 text-muted">Owner</dt>
+                    <dd class="col-sm-7 fw-medium">@detail.OwnerName</dd>
+
+                    <dt class="col-sm-5 text-muted">Source</dt>
+                    <dd class="col-sm-7">@(detail.Source.HasValue ? Labels.For(detail.Source.Value) : "—")</dd>
+
+                    <dt class="col-sm-5 text-muted">Created</dt>
+                    <dd class="col-sm-7 text-muted">@detail.CreatedDate.ToString("yyyy-MM-dd")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Tabs (Overview & History) -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom-0 pb-0">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-semibold" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes-pane" type="button" role="tab">
+                            Overview &amp; Notes
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-semibold" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-pane" type="button" role="tab">
+                            History @(Model.History.Count > 0 ? $"({Model.History.Count})" : "")
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="notes-pane" role="tabpanel">
+                        @if (!string.IsNullOrWhiteSpace(detail.Notes))
+                        {
+                            <div class="p-3 bg-light rounded text-secondary" style="white-space: pre-wrap;">@detail.Notes</div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small py-4 text-center mb-0">No notes recorded for this opportunity.</p>
+                        }
+                    </div>
+
+                    <div class="tab-pane fade" id="history-pane" role="tabpanel">
+                        @if (Model.History.Count > 0)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light text-muted small text-uppercase">
+                                        <tr>
+                                            <th scope="col" style="width: 160px;">Date &amp; Time</th>
+                                            <th scope="col" style="width: 120px;">User</th>
+                                            <th scope="col" style="width: 130px;">Action</th>
+                                            <th scope="col" style="width: 90px;">Result</th>
+                                            <th scope="col">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var log in Model.History)
+                                        {
+                                            <tr>
+                                                <td class="text-nowrap small text-muted">@log.CreatedDateUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                                <td class="fw-medium small">@log.UserName</td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark border">@log.Action</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(log.Result == AcxiomCrm.Domain.Enums.AuditResult.Success ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                                        @log.Result
+                                                    </span>
+                                                </td>
+                                                <td class="small text-muted text-break">@log.Details</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small py-4 text-center mb-0">No audit log entries recorded for this opportunity.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_CloseModal" model="Model" />
+
+@if (Model.CanDelete)
+{
+    <div class="modal fade" id="deleteOppModal" tabindex="-1" aria-labelledby="deleteOppModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <form method="post" asp-action="Delete" asp-route-id="@detail.Id">
+                    <div class="modal-header">
+                        <h5 class="modal-title h6 fw-semibold text-danger" id="deleteOppModalTitle">Delete Opportunity</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted mb-0">
+                            Are you sure you want to delete opportunity <strong>@detail.Name</strong>? This action will mark it as deleted.
+                        </p>
+                    </div>
+                    <div class="modal-footer bg-light py-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-danger" id="confirmDeleteOppBtn">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/opportunities.js"></script>
+}

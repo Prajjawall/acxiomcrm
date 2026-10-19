@@ -51,7 +51,7 @@ Update as work completes.
 | 5 | 08 Audit, Part B | ☑ | plan/08b-audit-ui | 2026-10-17 |
 | 6 | 04 Customers | ☑ | plan/04-customers | 2026-10-17 |
 | 7 | 05 Leads | ☑ | plan/05-leads | 2026-10-18 |
-| 8 | 06 Opportunities | ☐ | | |
+| 8 | 06 Opportunities | ☑ | plan/06-opportunities | 2026-10-19 |
 | 9 | 07 Follow-ups & activities | ☐ | | |
 | 10 | 09 Users & roles | ☐ | | |
 | 11 | 10 REST API | ☐ | | |

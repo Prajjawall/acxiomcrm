@@ -1,0 +1,42 @@
+@model AcxiomCrm.Web.ViewModels.Opportunities.OpportunityDetailsViewModel
+@using AcxiomCrm.Domain.Enums
+
+@{
+    var detail = Model.Detail;
+    var rowVersionBase64 = Convert.ToBase64String(detail.RowVersion);
+}
+
+<div class="modal fade" id="closeOppModal" tabindex="-1" aria-labelledby="closeOppModalTitle" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <form method="post" asp-action="ChangeStage" asp-route-id="@detail.Id" id="closeOppForm">
+                <input type="hidden" name="targetStage" id="closeModalTargetStage" value="Won" />
+                <input type="hidden" name="rowVersion" value="@rowVersionBase64" />
+
+                <div class="modal-header">
+                    <h5 class="modal-title h6 fw-semibold" id="closeOppModalTitle">Close Opportunity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="small text-muted mb-3" id="closeOppModalDesc">
+                        Closing this opportunity will finalize its stage and record the close date.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="closeModalNote" class="form-label small fw-semibold" id="closeModalNoteLabel">
+                            Close Note <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" name="closeNote" id="closeModalNote" rows="3" maxlength="1000"
+                                  placeholder="Provide win details or loss reason..." required></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary" id="confirmCloseOppBtn">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

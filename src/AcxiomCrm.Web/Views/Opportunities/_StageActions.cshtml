@@ -1,0 +1,41 @@
+@model AcxiomCrm.Web.ViewModels.Opportunities.OpportunityDetailsViewModel
+@using AcxiomCrm.Domain.Enums
+@using AcxiomCrm.Domain.Rules
+@using AcxiomCrm.Web.Presentation
+
+@{
+    var detail = Model.Detail;
+    var rowVersionBase64 = Convert.ToBase64String(detail.RowVersion);
+    var isOpen = detail.Status == OpportunityStatus.Open;
+}
+
+@if (isOpen && Model.CanEdit)
+{
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="text-muted small fw-semibold me-1">Move stage:</span>
+
+        @foreach (var stage in OpportunityRules.OpenStages)
+        {
+            if (stage != detail.Stage)
+            {
+                <form method="post" asp-action="ChangeStage" asp-route-id="@detail.Id" class="d-inline">
+                    <input type="hidden" name="targetStage" value="@stage" />
+                    <input type="hidden" name="rowVersion" value="@rowVersionBase64" />
+                    <button type="submit" class="btn btn-outline-secondary btn-sm" id="btnStage-@stage">
+                        @Labels.For(stage)
+                    </button>
+                </form>
+            }
+        }
+
+        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#closeOppModal"
+                data-stage="Won" data-title="Close as Won" data-note-label="Win reason &amp; deal summary" id="btnStageWon">
+            <i class="bi bi-check-circle me-1"></i> Close Won
+        </button>
+
+        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#closeOppModal"
+                data-stage="Lost" data-title="Close as Lost" data-note-label="Loss reason" id="btnStageLost">
+            <i class="bi bi-x-circle me-1"></i> Close Lost
+        </button>
+    </div>
+}

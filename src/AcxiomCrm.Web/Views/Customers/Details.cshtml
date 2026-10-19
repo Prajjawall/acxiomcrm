@@ -25,10 +25,16 @@
     <div class="d-flex gap-2">
         @if (Model.CanEdit)
         {
+            <a asp-controller="Opportunities" asp-action="Create" asp-route-customerId="@Model.Customer.Id" class="btn btn-outline-success btn-sm" id="createCustomerOppBtn">
+                + Opportunity
+            </a>
             <a asp-action="Edit" asp-route-id="@Model.Customer.Id" class="btn btn-outline-primary btn-sm">
                 Edit
             </a>
         }
+        <a asp-controller="Opportunities" asp-action="Index" asp-route-customerId="@Model.Customer.Id" class="btn btn-outline-secondary btn-sm" id="viewCustomerOppsBtn">
+            Opportunities
+        </a>
         @if (Model.CanDelete)
         {
             <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deactivateModal">

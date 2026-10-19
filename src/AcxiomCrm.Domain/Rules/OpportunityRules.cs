@@ -34,6 +34,13 @@ public static class OpportunityRules
         };
     }
 
+    public static readonly IReadOnlyList<OpportunityStage> OpenStages =
+    [
+        OpportunityStage.Qualification,
+        OpportunityStage.Proposal,
+        OpportunityStage.Negotiation
+    ];
+
     public static bool IsOpen(OpportunityStage stage)
     {
         return stage is OpportunityStage.Qualification or OpportunityStage.Proposal or OpportunityStage.Negotiation;

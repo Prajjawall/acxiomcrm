@@ -125,32 +125,21 @@ public interface IOpportunityService {
 - Form fields use `AxRange`/`AxFutureDate`/`AxRequired`. Amount is a text input with `inputmode="decimal"`, accepts `12,50,000` and `1250000.50` (server model binder `IndianDecimalModelBinder`: strips commas/spaces/₹, invariant parse, rejects more than 2 decimals with `Enter an amount with at most 2 decimal places.`). Customer field is a typeahead using `/Customers/Lookup`. Probability is a number input 0–100 with stage-default hint ("Typical for Proposal: 50").
 - Details: summary facts (Amount, Probability, **Weighted value**, Expected close with overdue marker, Stage badge, Owner), stage action bar (next/prev open stages and Won/Lost buttons; Won/Lost open `_CloseModal` requiring a note, form posts the note), Reopen for Manager/Admin; History tab (audit).
 
-- [ ] **Step 1: Write failing tests.** Controller tests mirroring plan 04/05 patterns plus: `Amount_binder_accepts_indian_grouping_and_rejects_three_decimals`; `Form_inputs_carry_data_val_attributes_for_range_and_futuredate` with today's value injected; `ChangeStage_to_Won_without_note_redisplays_with_error`; `Closed_opportunity_shows_no_edit_button`; access matrix (executive can't reopen/delete; manager can for team); IDOR (404). `OpportunityServerValidationTests`: crafted POSTs for Amount `0`, `-5`, Probability `101`, close date yesterday, stage field tampering on Edit (ignored) and customer from another team (rejected) each assert message + no row change.
-- [ ] **Step 2: Run.** Expected: FAIL. **Step 3: Implement.** **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(opportunities): controller and views`.
+- [x] **Step 1: Write failing tests.** Controller tests mirroring plan 04/05 patterns plus: `Amount_binder_accepts_indian_grouping_and_rejects_three_decimals`; `Form_inputs_carry_data_val_attributes_for_range_and_futuredate` with today's value injected; `ChangeStage_to_Won_without_note_redisplays_with_error`; `Closed_opportunity_shows_no_edit_button`; access matrix (executive can't reopen/delete; manager can for team); IDOR (404). `OpportunityServerValidationTests`: crafted POSTs for Amount `0`, `-5`, Probability `101`, close date yesterday, stage field tampering on Edit (ignored) and customer from another team (rejected) each assert message + no row change.
+- [x] **Step 2: Run.** Expected: FAIL. **Step 3: Implement.** **Step 4: Run.** Expected: PASS.
+- [x] **Step 5: Commit** `feat(opportunities): controller and views`.
 
 ---
 
-## Task 4: Pipeline board
+## Task 4: Pipeline board (CUT per SCOPE-LITE §2)
 
-**Files:**
-- Create: `Views/Opportunities/{Board,_BoardColumn,_BoardCard}.cshtml`, `assets/js/pages/opportunity-board.js`, `assets/scss/pages/_board.scss`
-- Modify: `OpportunitiesController` (`Board` action, `POST /Opportunities/Move` JSON endpoint)
-- Test: `tests/AcxiomCrm.Web.Tests/OpportunityBoardTests.cs`, `tests/AcxiomCrm.E2E/OpportunityBoardE2ETests.cs`
-
-**Interfaces:**
-- `POST /Opportunities/Move` body `{ id, toStage, closeNote?, rowVersion }` (anti-forgery via header `RequestVerificationToken`), returns `200 { card, columnTotals }` or `400/409` problem JSON; the same service call as the form path.
-- Board: five columns; headers show count, total and weighted total (`ax-money`, compact format); cards: name, customer, amount, close date (overdue marker with text "Overdue"), owner initials with `title`. Won/Lost columns show only items closed in the last 30 days with a "View all" link to the filtered table. Each card has a **Move to…** menu button (keyboard-accessible) in addition to drag. Failed move reverts the card and announces the error in an `aria-live` region.
-
-- [ ] **Step 1: Write failing tests.** `OpportunityBoardTests`: HTML has 5 columns in order; header totals equal service board totals; card for out-of-scope opportunity absent; `Move` open→open OK; `Move` to Won without note → 400 with field error; stale rowVersion → 409; move without anti-forgery header → 400; executive moving someone else's card → 404. E2E: `Move_card_via_menu_updates_totals_and_persists_after_reload`, `Drag_card_to_Negotiation`, `Won_move_asks_for_note_modal`, `Failed_move_reverts_and_announces`; axe on board.
-- [ ] **Step 2–4:** run → implement → pass. **Step 5: Commit** `feat(opportunities): pipeline board with keyboard-accessible moves`.
+*Kanban drag-and-drop board cut per SCOPE-LITE §2 (table view only).*
 
 ---
 
-## Task 5: E2E, design review, exit
+## Task 5: E2E, design review, exit (CUT per SCOPE-LITE §2)
 
-- [ ] **Step 1: Write failing tests** `OpportunityFlowTests`: acceptance steps 5–7 of the Source scenario (amount 0 rejected, probability 101 rejected, past close date rejected) through the real form with client-side messages **and** with JS-disabled crafted posts (use `request.PostAsync` with token); happy path create → move → Won with note; weighted figure displayed equals Amount × Probability / 100.
-- [ ] **Step 2:** run/fix. **Step 3:** screenshots (list, board, details) + anti-slop checklist in `docs/design/screens/README.md`. **Step 4:** Exit checks, tick roadmap. **Step 5: Commit** `test(opportunities): E2E; docs: close plan 06`.
+*Playwright E2E suite and manual screenshots cut per SCOPE-LITE §2.*
 
 ## Exit checks
 1. `dotnet test` green; `OpportunityService` + `OpportunityRules` coverage ≥ 90%.

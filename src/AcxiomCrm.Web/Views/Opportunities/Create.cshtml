@@ -1,0 +1,34 @@
+@model AcxiomCrm.Web.ViewModels.Opportunities.OpportunityFormViewModel
+
+@{
+    ViewData["Title"] = "New Opportunity";
+    ViewData["Page"] = "opportunities";
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-sm btn-link text-decoration-none px-0 mb-2">
+        &larr; Back to opportunities
+    </a>
+    <h1 class="h3 mb-1">New Opportunity</h1>
+    <p class="text-muted small mb-0">Create a new sales opportunity and attach it to an active customer account.</p>
+</div>
+
+<form method="post" asp-action="Create" id="createOppForm">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm mb-4" role="alert"></div>
+
+    <partial name="_Form" model="Model" />
+
+    <div class="d-flex align-items-center gap-2 mb-5">
+        <button type="submit" class="btn btn-primary" id="saveOppButton">
+            Save opportunity
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Cancel
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/opportunities.js"></script>
+}

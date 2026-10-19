@@ -1,0 +1,155 @@
+@model AcxiomCrm.Web.ViewModels.Opportunities.OpportunityFormViewModel
+@using AcxiomCrm.Domain.Enums
+@using AcxiomCrm.Domain.Rules
+@using AcxiomCrm.Web.Presentation
+
+<input type="hidden" asp-for="Id" />
+<input type="hidden" asp-for="RowVersion" />
+
+<div class="row g-4">
+    <!-- Main Form Fields -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-semibold">Opportunity Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label small fw-semibold">Opportunity name <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="e.g. ERP Expansion Phase 2" maxlength="200" required />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Customer <span class="text-danger">*</span></label>
+                    <input type="hidden" asp-for="CustomerId" id="customerIdInput" />
+                    <input type="hidden" asp-for="CustomerName" id="customerNameInput" />
+
+                    @if (Model.Id > 0 && Model.CustomerId > 0)
+                    {
+                        <!-- On edit, customer is locked or displayed -->
+                        <div class="p-2 px-3 bg-light rounded border text-muted small">
+                            <span class="fw-semibold text-dark">@Model.CustomerName</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- On create, typeahead search -->
+                        <div class="position-relative">
+                            <input type="text" id="customerLookupInput" class="form-control"
+                                   placeholder="Type to search customer by name, email, or code..."
+                                   value="@Model.CustomerName" autocomplete="off" />
+                            <div id="lookupResults" class="dropdown-menu w-100 shadow-sm mt-1" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+
+                        <div id="selectedCustomerDisplay" class="@(Model.CustomerId > 0 ? "" : "d-none") mt-2 text-success small fw-semibold">
+                            <i class="bi bi-check-circle me-1"></i> Selected: <span id="selectedCustomerName">@Model.CustomerName</span>
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2 text-decoration-none" id="clearSelectedCustomer">Clear</button>
+                        </div>
+                    }
+                    <span asp-validation-for="CustomerId" class="text-danger small d-block mt-1"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Amount" class="form-label small fw-semibold">Amount (₹) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">₹</span>
+                            <input asp-for="Amount" class="form-control font-monospace" inputmode="decimal" placeholder="e.g. 5,00,000" id="oppAmountInput" />
+                        </div>
+                        <span asp-validation-for="Amount" class="text-danger small"></span>
+                        <div class="form-text small text-muted">Supports Indian numbering (e.g. 12,50,000).</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Probability" class="form-label small fw-semibold">Probability (%) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input asp-for="Probability" type="number" min="0" max="100" class="form-control font-monospace" id="oppProbabilityInput" />
+                            <span class="input-group-text bg-light">%</span>
+                        </div>
+                        <span asp-validation-for="Probability" class="text-danger small"></span>
+                        <div class="form-text small text-muted" id="probHint">Typical for @Model.Stage: @OpportunityRules.DefaultProbability(Model.Stage)%</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="ExpectedCloseDate" class="form-label small fw-semibold">Expected close date <span class="text-danger">*</span></label>
+                        <input asp-for="ExpectedCloseDate" type="date" class="form-control" />
+                        <span asp-validation-for="ExpectedCloseDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Source" class="form-label small fw-semibold">Lead source</label>
+                        <select asp-for="Source" class="form-select">
+                            <option value="">None / Direct</option>
+                            @foreach (var src in Enum.GetValues<LeadSource>())
+                            {
+                                <option value="@src">@Labels.For(src)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Source" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Notes" class="form-label small fw-semibold">Notes / Description</label>
+                    <textarea asp-for="Notes" class="form-control" rows="4" maxlength="2000" placeholder="Requirements, key stakeholders, discussion notes..."></textarea>
+                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Fields -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="m-0 fw-semibold">Workflow &amp; Assignment</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Stage</label>
+                    @if (Model.Id == 0)
+                    {
+                        <select asp-for="Stage" class="form-select" id="oppStageSelectInput">
+                            @foreach (var stage in OpportunityRules.OpenStages)
+                            {
+                                <option value="@stage">@Labels.For(stage)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Stage" class="text-danger small"></span>
+                        <div class="form-text small text-muted">New opportunities start in an open stage.</div>
+                    }
+                    else
+                    {
+                        <div class="p-2 bg-light rounded border">
+                            <partial name="_StatusBadge" model='StatusBadges.For("Opportunity", Model.Stage)' />
+                        </div>
+                        <input type="hidden" asp-for="Stage" />
+                        <div class="form-text small text-muted">Use the stage actions bar on the details page to progress this deal.</div>
+                    }
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="OwnerId" class="form-label small fw-semibold">Assigned owner</label>
+                    @if (Model.OwnerOptions.Count > 0)
+                    {
+                        <select asp-for="OwnerId" class="form-select">
+                            @foreach (var owner in Model.OwnerOptions)
+                            {
+                                <option value="@owner.Id">@owner.Name (@owner.Role)</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="OwnerId" />
+                        <div class="form-control bg-light text-muted small">Current User</div>
+                    }
+                    <span asp-validation-for="OwnerId" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
