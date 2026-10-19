@@ -89,6 +89,11 @@ public sealed class Activity : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
         Status = status;
     }
 
+    public void AssignTo(string assignedToId)
+    {
+        OwnerId = assignedToId;
+    }
+
     public void SoftDelete(string deletedBy, DateTime deletedDate)
     {
         IsDeleted = true;

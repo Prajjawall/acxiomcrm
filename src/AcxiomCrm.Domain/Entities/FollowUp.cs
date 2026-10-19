@@ -138,6 +138,11 @@ public sealed class FollowUp : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
         Status = FollowUpStatus.Cancelled;
     }
 
+    public void AssignTo(string assignedToId)
+    {
+        OwnerId = assignedToId;
+    }
+
     public void SoftDelete(string deletedBy, DateTime deletedDate)
     {
         IsDeleted = true;

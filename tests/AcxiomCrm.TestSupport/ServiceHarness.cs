@@ -1,10 +1,12 @@
 using AcxiomCrm.Application.Abstractions;
 using AcxiomCrm.Application.Users;
 using AcxiomCrm.Infrastructure.Audit;
+using AcxiomCrm.Infrastructure.Identity;
 using AcxiomCrm.Infrastructure.Persistence;
 using AcxiomCrm.Infrastructure.Scope;
 using AcxiomCrm.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AcxiomCrm.TestSupport;
@@ -49,6 +51,10 @@ public sealed class ServiceHarness : IDisposable
                 options.AddInterceptors(customInterceptor);
             }
         });
+        services.AddDbContextFactory<CrmDbContext>(options =>
+        {
+            options.UseSqlServer(db.ConnectionString);
+        });
         services.AddScoped<ICrmDbContext>(sp => sp.GetRequiredService<CrmDbContext>());
 
         services.AddScoped<IAuditWriter, AuditWriter>();
@@ -60,6 +66,23 @@ public sealed class ServiceHarness : IDisposable
         services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, AcxiomCrm.Infrastructure.Leads.LeadService>();
         services.AddScoped<AcxiomCrm.Application.FollowUps.IFollowUpService, AcxiomCrm.Infrastructure.FollowUps.FollowUpService>();
         services.AddScoped<AcxiomCrm.Application.Activities.IActivityService, AcxiomCrm.Infrastructure.Activities.ActivityService>();
+        services.AddScoped<IWorkReassigner, WorkReassigner>();
+        services.AddScoped<IRefreshTokenRevoker, NoOpRefreshTokenRevoker>();
+        services.AddScoped<IUserAdminService, UserAdminService>();
+
+        services.AddLogging();
+        services.AddDataProtection();
+        services.AddAuthentication();
+        services.AddHttpContextAccessor();
+        var initialData = new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:Default"] = db.ConnectionString,
+            ["Security:Password:MinLength"] = "12",
+            ["Security:Lockout:MaxFailedAccessAttempts"] = "5",
+            ["Security:Lockout:DefaultLockoutTimeSpanMinutes"] = "15"
+        };
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection(initialData).Build();
+        services.AddCrmIdentity(config);
 
         configureServices?.Invoke(services);
 
