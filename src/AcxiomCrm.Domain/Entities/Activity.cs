@@ -19,13 +19,13 @@ public sealed class Activity : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
     public int? OpportunityId { get; private set; }
     public Opportunity? Opportunity { get; private set; }
 
-    public string AssignedToId { get; private set; } = string.Empty;
     public ActivityStatus Status { get; private set; } = ActivityStatus.Completed;
 
     public byte[] RowVersion { get; private set; } = [];
 
     // IOwnedEntity
-    public string OwnerId => AssignedToId;
+    public string OwnerId { get; private set; } = string.Empty;
+    public string AssignedToId => OwnerId;
 
     // IHasTimestamps
     public DateTime CreatedDate { get; private set; }
@@ -62,7 +62,7 @@ public sealed class Activity : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
             CustomerId = customerId,
             LeadId = leadId,
             OpportunityId = opportunityId,
-            AssignedToId = assignedToId,
+            OwnerId = assignedToId,
             Status = status
         };
     }

@@ -38,7 +38,10 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
             .HasPrecision(0)
             .IsRequired();
 
-        builder.Property(a => a.AssignedToId)
+        builder.Ignore(a => a.AssignedToId);
+
+        builder.Property(a => a.OwnerId)
+            .HasColumnName("AssignedToId")
             .HasMaxLength(450)
             .IsRequired();
 
@@ -91,12 +94,12 @@ public class ActivityConfiguration : IEntityTypeConfiguration<Activity>
 
         builder.HasOne<ApplicationUser>()
             .WithMany()
-            .HasForeignKey(a => a.AssignedToId)
+            .HasForeignKey(a => a.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasQueryFilter(a => !a.IsDeleted);
 
-        builder.HasIndex(a => new { a.AssignedToId, a.ActivityDate })
+        builder.HasIndex(a => new { a.OwnerId, a.ActivityDate })
             .HasDatabaseName("IX_Activities_AssignedTo_ActivityDate");
 
         builder.HasIndex(a => a.CustomerId)

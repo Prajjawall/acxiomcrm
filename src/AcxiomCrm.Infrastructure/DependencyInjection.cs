@@ -85,6 +85,7 @@ public static class DependencyInjection
         services.AddScoped<AcxiomCrm.Application.Opportunities.IOpportunityService, Opportunities.OpportunityService>();
         services.AddScoped<AcxiomCrm.Application.Leads.IOpportunityFactory, Opportunities.OpportunityFactory>();
         services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, Leads.LeadService>();
+        services.AddScoped<AcxiomCrm.Application.FollowUps.IFollowUpService, FollowUps.FollowUpService>();
 
         services.AddCrmIdentity(configuration);
 

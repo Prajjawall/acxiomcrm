@@ -58,6 +58,7 @@ public sealed class ServiceHarness : IDisposable
         services.AddScoped<AcxiomCrm.Application.Opportunities.IOpportunityService, AcxiomCrm.Infrastructure.Opportunities.OpportunityService>();
         services.AddScoped<AcxiomCrm.Application.Leads.IOpportunityFactory, AcxiomCrm.Infrastructure.Opportunities.OpportunityFactory>();
         services.AddScoped<AcxiomCrm.Application.Leads.ILeadService, AcxiomCrm.Infrastructure.Leads.LeadService>();
+        services.AddScoped<AcxiomCrm.Application.FollowUps.IFollowUpService, AcxiomCrm.Infrastructure.FollowUps.FollowUpService>();
 
         configureServices?.Invoke(services);
 

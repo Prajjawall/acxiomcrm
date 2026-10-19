@@ -42,7 +42,10 @@ public class FollowUpConfiguration : IEntityTypeConfiguration<FollowUp>
         builder.Property(f => f.Remarks)
             .HasMaxLength(Limits.Notes);
 
-        builder.Property(f => f.AssignedToId)
+        builder.Ignore(f => f.AssignedToId);
+
+        builder.Property(f => f.OwnerId)
+            .HasColumnName("AssignedToId")
             .HasMaxLength(450)
             .IsRequired();
 
@@ -102,12 +105,12 @@ public class FollowUpConfiguration : IEntityTypeConfiguration<FollowUp>
 
         builder.HasOne<ApplicationUser>()
             .WithMany()
-            .HasForeignKey(f => f.AssignedToId)
+            .HasForeignKey(f => f.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasQueryFilter(f => !f.IsDeleted);
 
-        builder.HasIndex(f => new { f.AssignedToId, f.FollowUpDate })
+        builder.HasIndex(f => new { f.OwnerId, f.FollowUpDate })
             .HasDatabaseName("IX_FollowUps_AssignedTo_FollowUpDate");
 
         builder.HasIndex(f => new { f.Status, f.FollowUpDate })

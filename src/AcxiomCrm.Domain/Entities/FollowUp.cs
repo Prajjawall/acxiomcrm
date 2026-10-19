@@ -19,7 +19,6 @@ public sealed class FollowUp : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
     public FollowUpType Type { get; private set; } = FollowUpType.Call;
     public FollowUpStatus Status { get; private set; } = FollowUpStatus.Planned;
     public string? Remarks { get; private set; }
-    public string AssignedToId { get; private set; } = string.Empty;
     public DateTime? CompletedDate { get; private set; }
     public int RescheduleCount { get; private set; }
     public bool IsHistoricalEntry { get; private set; }
@@ -27,7 +26,8 @@ public sealed class FollowUp : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
     public byte[] RowVersion { get; private set; } = [];
 
     // IOwnedEntity
-    public string OwnerId => AssignedToId;
+    public string OwnerId { get; private set; } = string.Empty;
+    public string AssignedToId => OwnerId;
 
     // IHasTimestamps
     public DateTime CreatedDate { get; private set; }
@@ -72,7 +72,7 @@ public sealed class FollowUp : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
             Type = type,
             Status = isHistoricalEntry ? FollowUpStatus.Completed : FollowUpStatus.Planned,
             Remarks = remarks,
-            AssignedToId = assignedToId,
+            OwnerId = assignedToId,
             IsHistoricalEntry = isHistoricalEntry,
             CompletedDate = isHistoricalEntry ? followUpDate : null,
             RescheduleCount = 0
@@ -92,6 +92,19 @@ public sealed class FollowUp : Entity, IOwnedEntity, ISoftDeletable, IAuditedEnt
         {
             Remarks = remarks;
         }
+    }
+
+    public void Update(string subject, FollowUpType type, string? remarks, string assignedToId)
+    {
+        if (Status != FollowUpStatus.Planned)
+        {
+            throw new InvalidOperationException($"Cannot update a follow-up in status {Status}.");
+        }
+
+        Subject = subject;
+        Type = type;
+        Remarks = remarks;
+        OwnerId = assignedToId;
     }
 
     public void Reschedule(DateTime newUtc)
