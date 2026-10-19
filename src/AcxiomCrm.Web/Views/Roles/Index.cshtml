@@ -1,0 +1,98 @@
+@model AcxiomCrm.Web.ViewModels.Users.RolesViewModel
+
+@{
+    ViewData["Title"] = "Roles & Permissions";
+    ViewData["Page"] = "roles";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1">Roles &amp; Permissions</h1>
+        <p class="text-muted small mb-0">Role hierarchy and system permission matrix. Permissions are fixed in this release.</p>
+    </div>
+</div>
+
+<!-- Role Cards -->
+<div class="row g-3 mb-4">
+    @foreach (var role in Model.Roles)
+    {
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="h6 fw-bold mb-0">@role.DisplayName</h5>
+                        <span class="badge bg-light text-dark border">@role.Name</span>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2 mb-3">
+                        <span class="display-6 fw-bold text-primary">@role.MemberCount</span>
+                        <span class="text-muted small">active members</span>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        @role.Permissions.Count assigned permissions across system modules.
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Permission Matrix Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="card-title m-0 h6 fw-semibold">Permission Matrix</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="rolesMatrixTable">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width: 25%;">Module</th>
+                    <th scope="col" style="width: 30%;">Permission</th>
+                    <th scope="col" class="text-center" style="width: 15%;">Administrator</th>
+                    <th scope="col" class="text-center" style="width: 15%;">Manager</th>
+                    <th scope="col" class="text-center" style="width: 15%;">Sales Executive</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Matrix)
+                {
+                    <tr>
+                        <td class="fw-semibold text-secondary">@row.Module</td>
+                        <td>
+                            <code>@row.Permission</code>
+                        </td>
+                        <td class="text-center">
+                            @if (row.Admin)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-muted border px-2 py-1">No</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (row.Manager)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-muted border px-2 py-1">No</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (row.SalesExecutive)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-muted border px-2 py-1">No</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

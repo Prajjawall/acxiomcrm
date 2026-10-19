@@ -1,0 +1,219 @@
+@model AcxiomCrm.Web.ViewModels.Users.UserDetailsViewModel
+@using AcxiomCrm.Domain.Security
+
+@{
+    ViewData["Title"] = $"{Model.User.FullName} · User Details";
+    ViewData["Page"] = "users-details";
+
+    var isAdmin = User.IsInRole(Roles.Admin);
+}
+
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-sm btn-link text-muted p-0 text-decoration-none">
+        &larr; Back to users
+    </a>
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <div>
+            <h1 class="h3 mb-1">@Model.User.FullName</h1>
+            <div class="text-muted small">
+                <span>@@@Model.User.UserName</span> &bull;
+                <span class="badge bg-light text-dark border">@Model.User.Role</span> &bull;
+                @if (Model.User.LockedOut)
+                {
+                    <span class="badge bg-danger">Locked</span>
+                }
+                else if (Model.User.IsActive)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Inactive</span>
+                }
+            </div>
+        </div>
+
+        @if (isAdmin)
+        {
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.User.Id" class="btn btn-outline-primary btn-sm">
+                    Edit user
+                </a>
+
+                @if (Model.User.LockedOut)
+                {
+                    <form method="post" asp-action="Unlock" asp-route-id="@Model.User.Id" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Unlock this user account?');">
+                            Unlock
+                        </button>
+                    </form>
+                }
+
+                <form method="post" asp-action="ResetPassword" asp-route-id="@Model.User.Id" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Reset this user\'s password? A temporary password will be generated.');">
+                        Reset password
+                    </button>
+                </form>
+
+                @if (Model.User.IsActive)
+                {
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                        Deactivate
+                    </button>
+                }
+                else
+                {
+                    <form method="post" asp-action="Activate" asp-route-id="@Model.User.Id" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Activate this user account?');">
+                            Activate
+                        </button>
+                    </form>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- User Information -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title m-0 h6 fw-semibold">Account Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted small">Full Name</dt>
+                    <dd class="col-sm-8 mb-2">@Model.User.FullName</dd>
+
+                    <dt class="col-sm-4 text-muted small">Username</dt>
+                    <dd class="col-sm-8 mb-2">@Model.User.UserName</dd>
+
+                    <dt class="col-sm-4 text-muted small">Email Address</dt>
+                    <dd class="col-sm-8 mb-2"><a href="mailto:@Model.User.Email">@Model.User.Email</a></dd>
+
+                    <dt class="col-sm-4 text-muted small">Role</dt>
+                    <dd class="col-sm-8 mb-2"><span class="badge bg-light text-dark border">@Model.User.Role</span></dd>
+
+                    <dt class="col-sm-4 text-muted small">Manager</dt>
+                    <dd class="col-sm-8 mb-2">@(string.IsNullOrWhiteSpace(Model.User.ManagerName) ? "None" : Model.User.ManagerName)</dd>
+
+                    <dt class="col-sm-4 text-muted small">Account Status</dt>
+                    <dd class="col-sm-8 mb-2">
+                        @if (Model.User.IsActive)
+                        {
+                            <span class="text-success fw-semibold">Active</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Inactive</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted small">Must Change Password</dt>
+                    <dd class="col-sm-8 mb-2">@(Model.User.MustChangePassword ? "Yes" : "No")</dd>
+
+                    <dt class="col-sm-4 text-muted small">Created Date</dt>
+                    <dd class="col-sm-8 mb-2">@Model.User.CreatedDate.ToString("yyyy-MM-dd HH:mm UTC")</dd>
+
+                    <dt class="col-sm-4 text-muted small">Last Login</dt>
+                    <dd class="col-sm-8 mb-0">@(Model.User.LastLoginDateUtc.HasValue ? Model.User.LastLoginDateUtc.Value.ToString("yyyy-MM-dd HH:mm UTC") : "Never")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Open Work KPI Summary -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title m-0 h6 fw-semibold">Active Assignments</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <div class="p-3 bg-light rounded text-center">
+                            <div class="h3 fw-bold text-primary mb-1">@Model.User.OpenLeads</div>
+                            <div class="text-muted small">Open Leads</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 bg-light rounded text-center">
+                            <div class="h3 fw-bold text-success mb-1">@Model.User.OpenOpportunities</div>
+                            <div class="text-muted small">Open Opportunities</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="p-3 bg-light rounded text-center">
+                            <div class="h3 fw-bold text-warning mb-1">@Model.User.PlannedFollowUps</div>
+                            <div class="text-muted small">Planned Follow-ups</div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.User.OpenLeads > 0 || Model.User.OpenOpportunities > 0 || Model.User.PlannedFollowUps > 0)
+                {
+                    <div class="alert alert-warning mt-3 mb-0 small" role="alert">
+                        <strong>Notice:</strong> This user currently owns active sales records. If deactivating this account, consider reassigning their active work to another team member.
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted small mt-3">
+                        This user has no open records currently assigned.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Modal -->
+@if (isAdmin && Model.User.IsActive)
+{
+    <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-action="Deactivate" asp-route-id="@Model.User.Id">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5 class="modal-title h6" id="deactivateModalLabel">Deactivate Account</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3">
+                            Are you sure you want to deactivate <strong>@Model.User.FullName</strong>?
+                            Their active sessions and API access will be revoked.
+                        </p>
+
+                        @if (Model.User.OpenLeads > 0 || Model.User.OpenOpportunities > 0 || Model.User.PlannedFollowUps > 0)
+                        {
+                            <div class="mb-3">
+                                <label for="reassignSelect" class="form-label small fw-semibold">
+                                    Reassign open records to:
+                                </label>
+                                <select name="reassignToUserId" id="reassignSelect" class="form-select form-select-sm">
+                                    <option value="">Leave unassigned / flagged</option>
+                                    @foreach (var target in Model.ReassignTargets)
+                                    {
+                                        <option value="@target.Id">@target.Name (@target.Role)</option>
+                                    }
+                                </select>
+                                <div class="form-text small">
+                                    Will reassign @Model.User.OpenLeads open leads, @Model.User.OpenOpportunities opportunities, and @Model.User.PlannedFollowUps follow-ups.
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger btn-sm">Confirm Deactivation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

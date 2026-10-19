@@ -1,0 +1,53 @@
+@model AcxiomCrm.Web.ViewModels.Users.UserFormViewModel
+@using AcxiomCrm.Domain.Security
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="FullName" class="form-label fw-semibold">Full name <span class="text-danger">*</span></label>
+        <input asp-for="FullName" class="form-control" placeholder="e.g. Aditi Shanbhag" />
+        <span asp-validation-for="FullName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="UserName" class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+        <input asp-for="UserName" class="form-control" placeholder="e.g. aditi.s" />
+        <span asp-validation-for="UserName" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Email" class="form-label fw-semibold">Email address <span class="text-danger">*</span></label>
+        <input asp-for="Email" class="form-control" type="email" placeholder="e.g. aditi@acxiom.com" />
+        <span asp-validation-for="Email" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Role" class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+        <select asp-for="Role" class="form-select" id="roleSelect">
+            <option value="@Roles.SalesExecutive">Sales Executive</option>
+            <option value="@Roles.Manager">Manager</option>
+            <option value="@Roles.Admin">Administrator</option>
+        </select>
+        <span asp-validation-for="Role" class="text-danger small"></span>
+    </div>
+
+    <div class="col-md-6" id="managerGroup">
+        <label asp-for="ManagerId" class="form-label fw-semibold">Reporting Manager</label>
+        <select asp-for="ManagerId" class="form-select">
+            <option value="">None</option>
+            @foreach (var mgr in Model.ManagerOptions)
+            {
+                <option value="@mgr.Id" selected="@(Model.ManagerId == mgr.Id)">@mgr.Name</option>
+            }
+        </select>
+        <div class="form-text small">Required for Sales Executives to establish team ownership scope.</div>
+        <span asp-validation-for="ManagerId" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12 mt-3">
+        <div class="form-check form-switch">
+            <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveSwitch" />
+            <label class="form-check-label fw-semibold" for="isActiveSwitch">Active Account</label>
+            <div class="form-text small">Inactive users cannot log in to the CRM or API.</div>
+        </div>
+    </div>
+</div>

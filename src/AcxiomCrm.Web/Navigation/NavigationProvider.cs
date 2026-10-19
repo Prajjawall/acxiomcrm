@@ -28,7 +28,7 @@ public static class NavigationProvider
         ]),
         new("Administration",
         [
-            new("Users", "user-cog", "Users", "Index", Permissions.UsersManage),
+            new("Users", "user-cog", "Users", "Index", Permissions.UsersView),
             new("Roles", "shield", "Roles", "Index", Permissions.RolesView),
             new("Audit Log", "clipboard-list", "Audit", "Index", Permissions.AuditView)
         ])
