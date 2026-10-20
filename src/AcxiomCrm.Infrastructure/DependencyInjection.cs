@@ -91,6 +91,8 @@ public static class DependencyInjection
         services.AddScoped<Users.IWorkReassigner, Users.WorkReassigner>();
         services.AddScoped<IRefreshTokenRevoker, Users.NoOpRefreshTokenRevoker>();
         services.AddScoped<AcxiomCrm.Application.Users.IUserAdminService, Users.UserAdminService>();
+        services.AddScoped<AcxiomCrm.Application.Dashboard.IDashboardService, Dashboard.DashboardService>();
+        services.AddScoped<AcxiomCrm.Application.Reports.IReportService, Reports.ReportService>();
 
         services.AddCrmIdentity(configuration);
 

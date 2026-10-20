@@ -1,0 +1,62 @@
+@{
+    ViewData["Title"] = "Reports";
+    ViewData["Page"] = "reports";
+}
+
+<div class="reports-hub">
+    <div class="row g-4">
+        <!-- Customer Report Card -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-between p-4">
+                    <div>
+                        <div class="text-teal fs-4 mb-2">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h5 class="fw-semibold">Customer Accounts Report</h5>
+                        <p class="text-muted small">Comprehensive list of customer accounts, contact information, owner assignments, and status breakdown.</p>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-action="Customers" class="btn btn-outline-primary btn-sm w-100">View Report</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Report Card -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-between p-4">
+                    <div>
+                        <div class="text-teal fs-4 mb-2">
+                            <i class="bi bi-funnel"></i>
+                        </div>
+                        <h5 class="fw-semibold">Pipeline Analysis Report</h5>
+                        <p class="text-muted small">Stage-by-stage opportunity breakdown, weighted probability valuations, and performance by deal owner.</p>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-action="Pipeline" class="btn btn-outline-primary btn-sm w-100">View Report</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Follow-Up Report Card -->
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-between p-4">
+                    <div>
+                        <div class="text-teal fs-4 mb-2">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h5 class="fw-semibold">Follow-Up Schedule Report</h5>
+                        <p class="text-muted small">Track scheduled calls and meetings across leads and customers, including overdue follow-up tasks.</p>
+                    </div>
+                    <div class="mt-3">
+                        <a asp-action="FollowUps" class="btn btn-outline-primary btn-sm w-100">View Report</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,112 @@
+@model AcxiomCrm.Web.ViewModels.Reports.PipelineReportViewModel
+@{
+    ViewData["Title"] = "Pipeline Analysis Report";
+    ViewData["Page"] = "reports";
+}
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small fw-semibold text-uppercase">Total Active Deals</div>
+                <div class="fs-3 fw-bold text-dark font-monospace mt-1">@Model.Report.Totals.TotalCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small fw-semibold text-uppercase">Total Pipeline Value</div>
+                <div class="fs-3 fw-bold text-dark font-monospace mt-1">₹@Model.Report.Totals.TotalAmount.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small fw-semibold text-uppercase">Weighted Forecast Value</div>
+                <div class="fs-3 fw-bold text-teal font-monospace mt-1">₹@Model.Report.Totals.TotalWeightedAmount.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- By Stage Table -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                <h6 class="fw-semibold m-0">Stage Breakdown</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Stage</th>
+                                <th class="text-end">Deals</th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-end">Weighted Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var stage in Model.Report.ByStage)
+                            {
+                                <tr>
+                                    <td class="fw-medium">@stage.Stage</td>
+                                    <td class="text-end">@stage.Count</td>
+                                    <td class="text-end font-monospace">₹@stage.Amount.ToString("N0")</td>
+                                    <td class="text-end font-monospace text-teal">₹@stage.WeightedAmount.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- By Owner Table -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                <h6 class="fw-semibold m-0">Owner Performance</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Owner</th>
+                                <th class="text-end">Deals</th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-end">Weighted Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Report.ByOwner.Count > 0)
+                            {
+                                @foreach (var owner in Model.Report.ByOwner)
+                                {
+                                    <tr>
+                                        <td class="fw-medium">@owner.OwnerName</td>
+                                        <td class="text-end">@owner.Count</td>
+                                        <td class="text-end font-monospace">₹@owner.Amount.ToString("N0")</td>
+                                        <td class="text-end font-monospace text-teal">₹@owner.WeightedAmount.ToString("N0")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No open pipeline deals.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

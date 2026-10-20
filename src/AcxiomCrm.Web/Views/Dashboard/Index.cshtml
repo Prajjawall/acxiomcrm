@@ -1,8 +1,286 @@
+@model AcxiomCrm.Web.ViewModels.Dashboard.DashboardViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Dashboard";
+    ViewData["Page"] = "dashboard";
+
+    var initialJson = JsonSerializer.Serialize(new
+    {
+        leadStatus = Model.LeadStatus,
+        pipeline = Model.Pipeline,
+        monthlySales = Model.MonthlySales,
+        weightedPipeline = Model.WeightedPipeline
+    });
 }
 
-<div class="dashboard-container">
-    <h1>Welcome to AcxiomCRM Dashboard</h1>
-    <p>Operational summary and overview.</p>
+<div class="dashboard-page" data-dashboard-data="@initialJson">
+    <!-- Period Filter Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-3">
+            <form method="get" class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small fw-medium">Time Period:</span>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a asp-action="Index" asp-route-preset="Today" class="btn @(Model.Preset == AcxiomCrm.Application.Reporting.DatePreset.Today ? "btn-primary" : "btn-outline-secondary")">Today</a>
+                        <a asp-action="Index" asp-route-preset="Week" class="btn @(Model.Preset == AcxiomCrm.Application.Reporting.DatePreset.Week ? "btn-primary" : "btn-outline-secondary")">This Week</a>
+                        <a asp-action="Index" asp-route-preset="Month" class="btn @(Model.Preset == AcxiomCrm.Application.Reporting.DatePreset.Month ? "btn-primary" : "btn-outline-secondary")">This Month</a>
+                        <a asp-action="Index" asp-route-preset="All" class="btn @(Model.Preset == AcxiomCrm.Application.Reporting.DatePreset.All ? "btn-primary" : "btn-outline-secondary")">All Time</a>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="preset" value="Custom" />
+                    <input type="date" name="from" value="@(Model.From?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" style="width: 140px;" />
+                    <span class="text-muted small">to</span>
+                    <input type="date" name="to" value="@(Model.To?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" style="width: 140px;" />
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 8 KPI Cards Grid -->
+    <div class="row g-3 mb-4">
+        @foreach (var card in Model.Cards)
+        {
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="text-muted small fw-semibold text-uppercase mb-1">@card.Label</div>
+                        <div class="fs-3 fw-bold text-dark font-monospace">
+                            @if (card.IsMoney)
+                            {
+                                <span>₹@card.Value.ToString("N0")</span>
+                            }
+                            else
+                            {
+                                <span>@card.Value.ToString("N0")</span>
+                            }
+                        </div>
+                        <div class="small text-muted mt-2 d-flex justify-content-between">
+                            <span>@(card.Hint ?? "")</span>
+                            @if (card.DeltaInPeriod.HasValue && card.DeltaInPeriod.Value > 0)
+                            {
+                                <span class="badge bg-success-subtle text-success">+@card.DeltaInPeriod in period</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Lead Status Chart -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                    <h6 class="fw-semibold m-0">Lead Status Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 260px;">
+                        <canvas id="leadStatusChart" role="img" aria-label="Lead status chart"></canvas>
+                    </div>
+                    <table class="visually-hidden">
+                        <caption>Lead status counts</caption>
+                        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.LeadStatus)
+                            {
+                                <tr><td>@item.Label</td><td>@item.Value</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline by Stage Chart -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-semibold m-0">Deal Pipeline by Stage</h6>
+                    <span class="badge bg-teal text-white small">Weighted: ₹@Model.WeightedPipeline.ToString("N0")</span>
+                </div>
+                <div class="card-body">
+                    <div style="height: 260px;">
+                        <canvas id="pipelineChart" role="img" aria-label="Pipeline by stage chart"></canvas>
+                    </div>
+                    <table class="visually-hidden">
+                        <caption>Pipeline stage amounts</caption>
+                        <thead><tr><th>Stage</th><th>Amount</th><th>Weighted</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.Pipeline)
+                            {
+                                <tr><td>@item.Stage</td><td>@item.Amount</td><td>@item.Weighted</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Sales Chart -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                    <h6 class="fw-semibold m-0">Monthly Sales (Won Deals)</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 260px;">
+                        <canvas id="monthlySalesChart" role="img" aria-label="Monthly sales chart"></canvas>
+                    </div>
+                    <table class="visually-hidden">
+                        <caption>Monthly won deal revenue</caption>
+                        <thead><tr><th>Month</th><th>Amount</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.MonthlySales)
+                            {
+                                <tr><td>@item.Month.ToString("MMM yyyy")</td><td>@item.Amount</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role-Specific Panels -->
+    <div class="row g-4">
+        <!-- Admin Panel (if Admin) -->
+        @if (Model.Panels?.Admin != null)
+        {
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                        <h6 class="fw-semibold m-0">System Administration</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Active Users</span>
+                                <span class="badge bg-success-subtle text-success">@Model.Panels.Admin.ActiveUsers</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Inactive Users</span>
+                                <span class="badge bg-secondary-subtle text-secondary">@Model.Panels.Admin.InactiveUsers</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Locked Out Users</span>
+                                <span class="badge bg-danger-subtle text-danger">@Model.Panels.Admin.LockedOutUsers</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Failed Logins (24h)</span>
+                                <span class="badge bg-warning-subtle text-warning">@Model.Panels.Admin.FailedLoginsLast24h</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>Security Events (7d)</span>
+                                <span class="badge bg-info-subtle text-info">@Model.Panels.Admin.SecurityEventsLast7d</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Team Pipeline Panel (if Manager or Admin) -->
+        @if (Model.Panels?.TeamPipeline != null && Model.Panels.TeamPipeline.Count > 0)
+        {
+            <div class="col-12 @(Model.Panels.Admin != null ? "col-lg-8" : "col-lg-6")">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-3 pb-0">
+                        <h6 class="fw-semibold m-0">Team Pipeline Performance</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Team Member</th>
+                                        <th class="text-end">Deals</th>
+                                        <th class="text-end">Total Value</th>
+                                        <th class="text-end">Weighted Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var member in Model.Panels.TeamPipeline)
+                                    {
+                                        <tr>
+                                            <td class="fw-medium">@member.OwnerName</td>
+                                            <td class="text-end">@member.Count</td>
+                                            <td class="text-end font-monospace">₹@member.Amount.ToString("N0")</td>
+                                            <td class="text-end font-monospace text-teal">₹@member.Weighted.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Follow-Ups Panel -->
+        @if (Model.Panels?.MyFollowUps != null)
+        {
+            <div class="col-12 @(Model.Panels.TeamPipeline != null ? (Model.Panels.Admin != null ? "col-12" : "col-lg-6") : "col-12")">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+                        <h6 class="fw-semibold m-0">My Follow-ups Overview</h6>
+                        <a asp-controller="FollowUps" asp-action="Index" class="btn btn-sm btn-link text-decoration-none">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <div class="p-2 border rounded text-center">
+                                    <div class="text-muted small">Overdue</div>
+                                    <div class="fs-5 fw-bold text-danger">@Model.Panels.MyFollowUps.Overdue</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 border rounded text-center">
+                                    <div class="text-muted small">Due Today</div>
+                                    <div class="fs-5 fw-bold text-warning">@Model.Panels.MyFollowUps.DueToday</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 border rounded text-center">
+                                    <div class="text-muted small">Next 7 Days</div>
+                                    <div class="fs-5 fw-bold text-primary">@Model.Panels.MyFollowUps.Next7Days</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.Panels.MyFollowUps.Next5.Count > 0)
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var item in Model.Panels.MyFollowUps.Next5)
+                                {
+                                    <a asp-controller="FollowUps" asp-action="Details" asp-route-id="@item.Id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <div class="fw-medium text-dark">@item.Subject</div>
+                                            <div class="small text-muted">@item.RelatedName · @item.Type</div>
+                                        </div>
+                                        <div class="text-end small">
+                                            <div class="text-muted">@item.FollowUpDateUtc.ToString("dd MMM, hh:mm tt")</div>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small m-0">No upcoming planned follow-ups.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
+
+@section Scripts {
+    <script src="~/lib/chartjs/chart.umd.js"></script>
+    <script src="~/js/dashboard.js"></script>
+}

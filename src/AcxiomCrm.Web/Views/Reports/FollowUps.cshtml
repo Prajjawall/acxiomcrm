@@ -1,0 +1,95 @@
+@model AcxiomCrm.Web.ViewModels.Reports.FollowUpReportViewModel
+@{
+    ViewData["Title"] = "Follow-Up Schedule Report";
+    ViewData["Page"] = "reports";
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-medium">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Statuses</option>
+                    @foreach (AcxiomCrm.Domain.Enums.FollowUpStatus s in Enum.GetValues<AcxiomCrm.Domain.Enums.FollowUpStatus>())
+                    {
+                        <option value="@s" selected="@(Model.Status == s)">@s</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" name="overdue" value="true" id="overdueCheck" checked="@(Model.Overdue == true)" />
+                    <label class="form-check-label small" for="overdueCheck">
+                        Overdue Only
+                    </label>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a asp-action="FollowUps" class="btn btn-outline-secondary btn-sm">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+        <h6 class="fw-semibold m-0">Follow-Up Tasks (@Model.Result.Total total)</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Related Entity</th>
+                        <th>Type</th>
+                        <th>Scheduled Date</th>
+                        <th>Assigned To</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Result.Items.Count > 0)
+                    {
+                        @foreach (var item in Model.Result.Items)
+                        {
+                            <tr>
+                                <td class="fw-medium">@item.Subject</td>
+                                <td>
+                                    <span class="badge bg-secondary-subtle text-secondary me-1">@item.RelatedType</span>
+                                    <span>@item.RelatedName</span>
+                                </td>
+                                <td>@item.Type</td>
+                                <td class="small">
+                                    <span class="@(item.IsOverdue ? "text-danger fw-semibold" : "text-muted")">
+                                        @item.FollowUpDateUtc.ToString("dd MMM yyyy, hh:mm tt")
+                                    </span>
+                                </td>
+                                <td>@item.AssignedToName</td>
+                                <td>
+                                    <span class="badge @(item.Status == AcxiomCrm.Domain.Enums.FollowUpStatus.Completed ? "bg-success-subtle text-success" : (item.IsOverdue ? "bg-danger-subtle text-danger" : "bg-warning-subtle text-warning"))">
+                                        @item.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No follow-up records found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (Model.Result.Total > Model.Result.PageSize)
+    {
+        <div class="card-footer bg-transparent border-0 py-3">
+            <partial name="_Pager" model='new PagerModel(Model.Result.Page, Model.Result.PageSize, Model.Result.Total, "FollowUps")' />
+        </div>
+    }
+</div>

@@ -1,17 +1,32 @@
+using AcxiomCrm.Application.Common;
+using AcxiomCrm.Application.Reporting;
+using AcxiomCrm.Application.Reports;
+using AcxiomCrm.Domain.Enums;
 using AcxiomCrm.Web.Controllers.Api;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NSubstitute;
 using Shouldly;
 
 namespace AcxiomCrm.Web.Tests;
 
 public class ReportsApiTests
 {
+    private readonly IReportService _reportService = Substitute.For<IReportService>();
+
     [Fact]
-    public void Pipeline_report_returns_501_not_implemented_until_plan_11()
+    public async Task Pipeline_report_returns_200_with_pipeline_summary()
     {
         // Arrange
-        var controller = new ReportsApiController
+        var pipelineData = new PipelineReportDto(
+            [new PipelineStageSummary(OpportunityStage.Proposal, 2, 50000m, 25000m)],
+            [new PipelineOwnerSummary("user-1", "Alice", 2, 50000m, 25000m)],
+            new PipelineTotals(2, 50000m, 25000m));
+
+        _reportService.GetPipelineAsync(Arg.Any<ReportFilter>(), Arg.Any<CancellationToken>())
+            .Returns(Result<PipelineReportDto>.Ok(pipelineData));
+
+        var controller = new ReportsApiController(_reportService)
         {
             ControllerContext = new ControllerContext
             {
@@ -23,14 +38,13 @@ public class ReportsApiTests
         };
 
         // Act
-        var result = controller.GetPipeline(null, null, null);
+        var result = await controller.GetPipeline(null, null, null, CancellationToken.None);
 
         // Assert
-        var objResult = result.ShouldBeOfType<ObjectResult>();
-        objResult.StatusCode.ShouldBe(StatusCodes.Status501NotImplemented);
-
-        var problem = objResult.Value.ShouldBeOfType<ProblemDetails>();
-        problem.Status.ShouldBe(StatusCodes.Status501NotImplemented);
-        problem.Title.ShouldBe("Not Implemented");
+        var okResult = result.ShouldBeOfType<OkObjectResult>();
+        var dto = okResult.Value.ShouldBeOfType<PipelineReportDto>();
+        dto.Totals.TotalCount.ShouldBe(2);
+        dto.Totals.TotalAmount.ShouldBe(50000m);
+        dto.ByStage.Count.ShouldBe(1);
     }
 }
