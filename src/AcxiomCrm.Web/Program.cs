@@ -22,15 +22,27 @@ builder.Services.AddScoped<AcxiomCrm.Web.Services.IFlash, AcxiomCrm.Web.Services
 
 // Authentication & Authorization
 builder.Services.AddAppAuthentication(builder.Environment);
+builder.Services.AddApiAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddAppAuthorization();
+
+// Anti-forgery with header support
+builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 
 // Health Checks
 builder.Services.AddAppHealthChecks();
 
-// Controllers and views with auto-antiforgery
+// OpenAPI / Swagger
+builder.Services.AddAppOpenApi(builder.Environment);
+
+// Controllers and views with auto-antiforgery and JSON options
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+})
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 builder.Services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider, AcxiomCrm.Web.Validation.AxAttributeAdapterProvider>();
 
@@ -65,9 +77,13 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// OpenAPI / Swagger UI
+app.UseAppOpenApi();
+
 // Health check endpoints
 app.MapAppHealthChecks();
 
+app.MapControllers();
 app.MapStaticAssets();
 app.MapControllerRoute(
     name: "default",
