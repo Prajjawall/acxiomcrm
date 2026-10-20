@@ -56,7 +56,7 @@ Update as work completes.
 | 10 | 09 Users & roles | ☑ | plan/09-users-roles | 2026-10-19 |
 | 11 | 10 REST API | ☑ | plan/10-rest-api | 2026-10-20 |
 | 12 | 11 Dashboard & reports | ☑ | plan/11-dashboard-reports | 2026-10-20 |
-| 13 | 12 Hardening & release | ☐ | | |
+| 13 | 12 Hardening & release | ☑ | plan/12-hardening-release | 2026-10-20 |
 
 ## Known cross-plan seams
 | Seam | Defined in | Used in |

@@ -49,13 +49,25 @@ builder.Services.AddSingleton<Microsoft.AspNetCore.Mvc.DataAnnotations.IValidati
 
 var app = builder.Build();
 
-// Database migration on startup if enabled
+// Database migration and seeding on startup if enabled
 var databaseOptions = app.Services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
 if (databaseOptions.MigrateOnStartup)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
     await db.Database.MigrateAsync();
+
+    var roleSeeder = scope.ServiceProvider.GetRequiredService<AcxiomCrm.Infrastructure.Identity.RoleSeeder>();
+    await roleSeeder.SeedAsync();
+
+    var adminSeeder = scope.ServiceProvider.GetRequiredService<AcxiomCrm.Infrastructure.Identity.BootstrapAdminSeeder>();
+    await adminSeeder.SeedAsync();
+
+    if (databaseOptions.SeedDemoData)
+    {
+        var demoSeeder = scope.ServiceProvider.GetRequiredService<AcxiomCrm.Infrastructure.Seeding.DemoDataSeeder>();
+        await demoSeeder.SeedAsync();
+    }
 }
 
 // Global exception handling and status codes
